@@ -14,9 +14,12 @@ type BuildCommand struct {
 	target string
 }
 
-func (c BuildCommand) Run() ([]byte, error) {
+func (c BuildCommand) Exec() *exec.Cmd {
+	return exec.Command("go", append(c.args, c.target)...)
+}
 
-	return exec.Command("go", append(c.args, c.target)...).Output()
+func (c BuildCommand) Run() ([]byte, error) {
+	return c.Exec().Output()
 }
 
 func (c BuildCommand) TrimPath() BuildCommand {
