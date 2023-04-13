@@ -8,6 +8,6 @@ type Commands struct {
 	Ldflags    string
 	SoftFloat  bool
 	OutputName string
-	OS         []string
-	Arch       []string
+	OS         string
+	Arch       string
 }

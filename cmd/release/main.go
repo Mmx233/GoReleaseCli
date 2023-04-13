@@ -16,19 +16,28 @@ func main() {
 	global.InitCommands(Version)
 	kingpin.MustParse(global.Commands.App.Parse(os.Args[1:]))
 
+	var targetOS []string
+	var targetArch []string
+	if global.Commands.OS != "" {
+		targetOS = strings.Split(global.Commands.OS, ",")
+	}
+	if global.Commands.Arch != "" {
+		targetArch = strings.Split(global.Commands.Arch, ",")
+	}
+
 	builder := goCMD.NewBuilder(global.Commands.Target)
 	builder = builder.ProductionLdflags().TrimPath().OutputName(global.Commands.OutputName)
 	if global.Commands.Ldflags != "" {
 		builder = builder.Ldflags(global.Commands.Ldflags)
 	}
 
-	var arch = make(map[string][]string, len(global.Commands.OS))
+	var arch = make(map[string][]string, len(targetOS))
 
 	// pair GOOS
-	if len(global.Commands.OS) == 0 {
+	if len(targetOS) == 0 {
 		arch = goCMD.Arch
 	} else {
-		for _, GOOS := range global.Commands.OS {
+		for _, GOOS := range targetOS {
 			if GOARCH, ok := goCMD.Arch[GOOS]; ok {
 				arch[GOOS] = GOARCH
 			}
@@ -39,12 +48,12 @@ func main() {
 	}
 
 	// pair GOARCH
-	var keepArch = make(map[string]int, len(global.Commands.OS))
-	if len(global.Commands.Arch) != 0 {
+	var keepArch = make(map[string]int, len(targetOS))
+	if len(targetArch) != 0 {
 		for GOOS, Arches := range arch {
 			archCounter := 0
 			for i, GOARCH := range Arches {
-				for _, ArchEX := range global.Commands.Arch {
+				for _, ArchEX := range targetArch {
 					if GOARCH == ArchEX {
 						archCounter++
 						goto nextArch
@@ -70,6 +79,9 @@ func main() {
 				}
 			}
 			arch[GOOS] = newARCH
+		}
+		if len(arch) == 0 {
+			log.Fatalln("no valid arch found")
 		}
 	}
 
