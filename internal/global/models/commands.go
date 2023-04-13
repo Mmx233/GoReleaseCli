@@ -10,5 +10,5 @@ type Commands struct {
 	OS        string
 	Arch      string
 	Output    string
-	//Name      string
+	Name      string
 }

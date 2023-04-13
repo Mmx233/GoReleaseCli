@@ -15,6 +15,9 @@ func PrepareDirs(outputDir string) error {
 }
 
 func LoadBinaryName() string {
+	if global.Commands.Name != "" {
+		return global.Commands.Name
+	}
 	target := strings.Replace(global.Commands.Target, `\`, "/", -1)
 	target = strings.TrimSuffix(target, "/")
 	temp := strings.Split(target, "/")
