@@ -125,7 +125,7 @@ func Run() {
 		for _, GOARCH := range Arches {
 			runBuild(binaryName, GOOS, GOARCH)
 			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
-				runBuild(binaryName, GOOS, GOARCH, "GOMIPS=soft-float")
+				runBuild(binaryName, GOOS, GOARCH, "GOMIPS=softfloat")
 			}
 		}
 	}
