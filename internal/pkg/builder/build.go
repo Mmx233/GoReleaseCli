@@ -104,7 +104,7 @@ func Run() {
 		args := make([]string, len(env))
 		args[0], args[1] = GOOS, GOARCH
 		i := 2
-		for _, v := range env[2:] {
+		for _, v := range env[:len(env)-2] {
 			args[i] = strings.Split(v, "=")[1]
 			i++
 		}
