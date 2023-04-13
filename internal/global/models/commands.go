@@ -9,4 +9,6 @@ type Commands struct {
 	SoftFloat bool
 	OS        string
 	Arch      string
+	Output    string
+	//Name      string
 }

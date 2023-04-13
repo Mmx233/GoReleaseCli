@@ -11,7 +11,7 @@ import (
 
 func PrepareDirs(outputDir string) error {
 	_ = os.RemoveAll(outputDir)
-	return os.Mkdir(outputDir, 0600)
+	return os.MkdirAll(outputDir, 0600)
 }
 
 func LoadBinaryName() string {
