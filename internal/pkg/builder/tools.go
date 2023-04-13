@@ -31,6 +31,7 @@ func BuildName(binaryName string, suffix ...string) string {
 	return name
 }
 
+// MatchTargetArch 由于没有进行深拷贝，本方法只能执行一次
 func MatchTargetArch() (map[string][]string, error) {
 	var targetOS []string
 	var targetArch []string
