@@ -8,6 +8,11 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"sync"
+)
+
+const (
+	StoreDir = "build"
 )
 
 func Run() {
@@ -85,14 +90,26 @@ func Run() {
 	}
 
 	// build
-	runBuild := func(binaryName, GOOS, GOARCH string, env ...string) {
+	runBuild := func(wg *sync.WaitGroup, binaryName, GOOS, GOARCH string, env ...string) {
+		wg.Add(1)
+		defer wg.Done()
+
 		if env != nil {
 			log.Infof("building %s/%s %v", GOOS, GOARCH, env)
 		} else {
 			log.Infof("building %s/%s", GOOS, GOARCH)
 		}
 
-		cmd := builder.Exec()
+		args := make([]string, len(env)+2)
+		args[0], args[1] = GOOS, GOARCH
+		i := 2
+		for _, v := range env {
+			args[i] = strings.Split(v, "=")[1]
+			i++
+		}
+		binaryName = BuildName(binaryName, args...)
+
+		cmd := builder.OutputName(binaryName).Exec()
 		env = append(env, "GOOS="+GOOS, "GOARCH="+GOARCH)
 		cmd.Env = append(cmd.Environ(), env...)
 		output, e := cmd.Output()
@@ -101,61 +118,59 @@ func Run() {
 			return
 		}
 
-		args := make([]string, len(env))
-		args[0], args[1] = GOOS, GOARCH
-		i := 2
-		for _, v := range env[:len(env)-2] {
-			args[i] = strings.Split(v, "=")[1]
-			i++
-		}
-		if binaryName, e = RenameBinary(binaryName, args...); e != nil {
-			log.Fatalln(e)
-		}
 		log.Infof("build %s success", binaryName)
 
 		if e = MakeZip(binaryName); e != nil {
-			log.Fatalln("compress failed:", e)
+			log.Fatalf("compress %s failed: %v", binaryName, e)
 		}
 	}
+	var wg = &sync.WaitGroup{}
 	for GOOS, Arches := range arch {
 		var binaryName = binaryName
 		if GOOS == "windows" {
 			binaryName += ".exe"
 		}
 		for _, GOARCH := range Arches {
-			runBuild(binaryName, GOOS, GOARCH)
+			runBuild(wg, binaryName, GOOS, GOARCH)
 			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
-				runBuild(binaryName, GOOS, GOARCH, "GOMIPS=softfloat")
+				runBuild(wg, binaryName, GOOS, GOARCH, "GOMIPS=softfloat")
 			}
 		}
 	}
+	wg.Wait()
 }
 
 func PrepareDirs() {
-	_ = os.RemoveAll("build")
-	_ = os.Mkdir("build", 0600)
+	_ = os.RemoveAll(StoreDir)
+	_ = os.Mkdir(StoreDir, 0600)
 }
 
 func LoadBinaryName() string {
 	target := strings.Replace(global.Commands.Target, `\`, "/", -1)
 	target = strings.TrimSuffix(target, "/")
 	temp := strings.Split(target, "/")
-	return temp[len(temp)-1]
+	return StoreDir + "/" + temp[len(temp)-1]
 }
 
-func RenameBinary(binaryName string, suffix ...string) (string, error) {
+func BuildName(binaryName string, suffix ...string) string {
 	ext := path.Ext(binaryName)
-	name := "build/" + strings.TrimSuffix(binaryName, ext)
+	name := strings.TrimSuffix(binaryName, ext)
 	for _, s := range suffix {
 		name += "_" + s
 	}
 	name += ext
-	return name, os.Rename(binaryName, name)
+	return name
 }
 
-func MakeZip(binaryName string) error {
-	name := strings.TrimSuffix(binaryName, path.Ext(binaryName))
-	output, e := exec.Command("7z", "a", name+".zip", binaryName).Output()
+func MakeZip(filePath string) error {
+	baseName := path.Base(filePath)
+	ext := path.Ext(baseName)
+	name := strings.TrimSuffix(baseName, ext)
+	dir := strings.TrimSuffix(filePath, baseName)
+
+	cmd := exec.Command("7z", "a", name+".zip", baseName)
+	cmd.Dir = dir
+	output, e := cmd.Output()
 	if e != nil {
 		log.Debugln(string(output))
 		return e
