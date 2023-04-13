@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const Version = "-.-.-"
+var Version = "-.-.-"
 
 func main() {
 	global.InitCommands(Version)
@@ -26,7 +26,7 @@ func main() {
 	}
 
 	builder := goCMD.NewBuilder(global.Commands.Target)
-	builder = builder.ProductionLdflags().TrimPath().OutputName(global.Commands.OutputName)
+	builder = builder.ProductionLdflags().TrimPath()
 	if global.Commands.Ldflags != "" {
 		builder = builder.Ldflags(global.Commands.Ldflags)
 	}
@@ -85,18 +85,12 @@ func main() {
 		}
 	}
 
-	// print pair result
-	var archOutput string
-	for GOOS, Arches := range arch {
-		for _, GOARCH := range Arches {
-			archOutput += fmt.Sprintf("%s/%s ", GOOS, GOARCH)
-		}
-	}
-	log.Infof("building platform: %s", archOutput)
-
 	// build
-	runBuild := func(env ...string) {
+	runBuild := func(GOOS, GOARCH string, env ...string) {
+		log.Infof("building %s/%s", GOOS, GOARCH)
+
 		cmd := builder.Exec()
+		env = append(env, "GOOS="+GOOS, "GOARCH="+GOARCH)
 		cmd.Env = append(cmd.Environ(), env...)
 		output, e := cmd.Output()
 		if e != nil {
@@ -107,10 +101,10 @@ func main() {
 	}
 	for GOOS, Arches := range arch {
 		for _, GOARCH := range Arches {
-			runBuild("GOOS="+GOOS, "GOARCH="+GOARCH)
+			runBuild(GOOS, GOARCH)
 
 			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
-				runBuild("GOOS="+GOOS, "GOARCH="+GOARCH, "GOMIPS=soft-float")
+				runBuild(GOOS, GOARCH, "GOMIPS=soft-float")
 			}
 		}
 	}
