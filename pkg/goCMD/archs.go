@@ -16,10 +16,3 @@ var Arch = map[string][]string{
 	"solaris":   {"amd64"},
 	"windows":   {"386", "amd64", "arm", "arm64"},
 }
-
-/*func BuildAllArch(target, outputName string) error {
-	cmd := NewBuilder(target).TrimPath().ProductionLdflags().OutputName(outputName).Exec()
-
-	var os = []string{}
-}
-*/

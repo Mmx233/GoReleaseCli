@@ -15,7 +15,7 @@ func InitCommands(version string) {
 
 	Commands.App.Flag("ldflags", "add custom ldflags").StringVar(&Commands.Ldflags)
 	Commands.App.Flag("soft-float", "enable soft float for mips").BoolVar(&Commands.SoftFloat)
-	Commands.App.Flag("output", "output name").Short('o').StringVar(&Commands.OutputName)
+	Commands.App.Flag("output", "output name").Short('o').Default("main").StringVar(&Commands.OutputName)
 	Commands.App.Flag("os", "target os").StringsVar(&Commands.OS)
 	Commands.App.Flag("arch", "target arch").StringsVar(&Commands.Arch)
 	Commands.App.Arg("target", "target package").Default(".").StringVar(&Commands.Target)
