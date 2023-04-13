@@ -107,10 +107,10 @@ func main() {
 	}
 	for GOOS, Arches := range arch {
 		for _, GOARCH := range Arches {
-			runBuild("GOOS"+GOOS, "GOARCH="+GOARCH)
+			runBuild("GOOS="+GOOS, "GOARCH="+GOARCH)
 
 			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
-				runBuild("GOOS"+GOOS, "GOARCH="+GOARCH, "GOMIPS=soft-float")
+				runBuild("GOOS="+GOOS, "GOARCH="+GOARCH, "GOMIPS=soft-float")
 			}
 		}
 	}
