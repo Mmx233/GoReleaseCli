@@ -3,9 +3,9 @@ package builder
 import (
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
+	"github.com/Mmx233/GoReleaseCli/tools"
 	log "github.com/sirupsen/logrus"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 	"sync"
@@ -120,7 +120,7 @@ func Run() {
 
 		log.Infof("build %s success", binaryName)
 
-		if e = MakeZip(binaryName); e != nil {
+		if e = tools.MakeZip(binaryName); e != nil {
 			log.Fatalf("compress %s failed: %v", binaryName, e)
 		}
 	}
@@ -160,20 +160,4 @@ func BuildName(binaryName string, suffix ...string) string {
 	}
 	name += ext
 	return name
-}
-
-func MakeZip(filePath string) error {
-	baseName := path.Base(filePath)
-	ext := path.Ext(baseName)
-	name := strings.TrimSuffix(baseName, ext)
-	dir := strings.TrimSuffix(filePath, baseName)
-
-	cmd := exec.Command("7z", "a", name+".zip", baseName)
-	cmd.Dir = dir
-	output, e := cmd.Output()
-	if e != nil {
-		log.Debugln(string(output))
-		return e
-	}
-	return nil
 }
