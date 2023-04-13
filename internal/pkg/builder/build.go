@@ -1,14 +1,18 @@
 package builder
 
 import (
-	"fmt"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
 	log "github.com/sirupsen/logrus"
+	"os"
+	"os/exec"
+	"path"
 	"strings"
 )
 
 func Run() {
+	PrepareDirs()
+
 	var targetOS []string
 	var targetArch []string
 	if global.Commands.OS != "" {
@@ -17,6 +21,8 @@ func Run() {
 	if global.Commands.Arch != "" {
 		targetArch = strings.Split(global.Commands.Arch, ",")
 	}
+
+	binaryName := LoadBinaryName()
 
 	builder := goCMD.NewBuilder(global.Commands.Target)
 	builder = builder.ProductionLdflags().TrimPath()
@@ -79,26 +85,80 @@ func Run() {
 	}
 
 	// build
-	runBuild := func(GOOS, GOARCH string, env ...string) {
-		log.Infof("building %s/%s", GOOS, GOARCH)
+	runBuild := func(binaryName, GOOS, GOARCH string, env ...string) {
+		if env != nil {
+			log.Infof("building %s/%s %v", GOOS, GOARCH, env)
+		} else {
+			log.Infof("building %s/%s", GOOS, GOARCH)
+		}
 
 		cmd := builder.Exec()
 		env = append(env, "GOOS="+GOOS, "GOARCH="+GOARCH)
 		cmd.Env = append(cmd.Environ(), env...)
 		output, e := cmd.Output()
 		if e != nil {
-			log.Fatalln("build error:", e)
-		} else if len(output) != 0 {
-			fmt.Println(string(output))
+			log.Errorf("build error: %v: %s", e, string(output))
+			return
+		}
+
+		args := make([]string, len(env))
+		args[0], args[1] = GOOS, GOARCH
+		i := 2
+		for _, v := range env[2:] {
+			args[i] = strings.Split(v, "=")[1]
+			i++
+		}
+		if binaryName, e = RenameBinary(binaryName, args...); e != nil {
+			log.Fatalln(e)
+		}
+		log.Infof("build %s success", binaryName)
+
+		if e = MakeZip(binaryName); e != nil {
+			log.Fatalln("compress failed:", e)
 		}
 	}
 	for GOOS, Arches := range arch {
+		var binaryName = binaryName
+		if GOOS == "windows" {
+			binaryName += ".exe"
+		}
 		for _, GOARCH := range Arches {
-			runBuild(GOOS, GOARCH)
-
+			runBuild(binaryName, GOOS, GOARCH)
 			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
-				runBuild(GOOS, GOARCH, "GOMIPS=soft-float")
+				runBuild(binaryName, GOOS, GOARCH, "GOMIPS=soft-float")
 			}
 		}
 	}
+}
+
+func PrepareDirs() {
+	_ = os.RemoveAll("build")
+	_ = os.Mkdir("build", 0600)
+}
+
+func LoadBinaryName() string {
+	target := strings.Replace(global.Commands.Target, `\`, "/", -1)
+	target = strings.TrimSuffix(target, "/")
+	temp := strings.Split(target, "/")
+	return temp[len(temp)-1]
+}
+
+func RenameBinary(binaryName string, suffix ...string) (string, error) {
+	ext := path.Ext(binaryName)
+	name := "build/" + strings.TrimSuffix(binaryName, ext)
+	for _, s := range suffix {
+		name += "_" + s
+	}
+	name += ext
+	return name, os.Rename(binaryName, name)
+}
+
+func MakeZip(binaryName string) error {
+	name := strings.TrimSuffix(binaryName, path.Ext(binaryName))
+	output, e := exec.Command("7z", "a", name+".zip", binaryName).Output()
+	if e != nil {
+		log.Debugln(string(output))
+		return e
+	}
+	return nil
 }
