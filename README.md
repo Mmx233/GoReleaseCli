@@ -1,5 +1,9 @@
 # GoReleaseCli
 
+[![Lisense](https://img.shields.io/github/license/Mmx233/GoReleaseCli)](https://github.com/Mmx233/GoReleaseCli/blob/main/LICENSE)
+[![Release](https://img.shields.io/github/v/release/Mmx233/GoReleaseCli?color=blueviolet&include_prereleases)](https://github.com/Mmx233/GoReleaseCli/releases)
+[![GoReport](https://goreportcard.com/badge/github.com/Mmx233/GoReleaseCli)](https://goreportcard.com/report/github.com/Mmx233/GoReleaseCli)
+
 ```shell
 ~$ release --help-long
 usage: release [<flags>] <target>
