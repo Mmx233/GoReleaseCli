@@ -44,7 +44,7 @@ type Builder struct {
 	GoCMD      goCMD.BuildCommand
 }
 
-func (a *Builder) Build(GOOS, GOARCH string, env ...string) error {
+func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 	args := make([]string, len(env)+2)
 	args[0], args[1] = GOOS, GOARCH
 	i := 2
@@ -64,21 +64,24 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) error {
 	cmd.Env = append(cmd.Environ(), env...)
 	output, e := cmd.Output()
 	if e != nil {
-		return fmt.Errorf("build error: %v: %s", e, string(output))
+		return buildName, fmt.Errorf("build error: %v: %s", e, string(output))
 	}
 
 	if e = tools.MakeZip(outputPath); e != nil {
-		return fmt.Errorf("compress %s failed: %v", outputPath, e)
+		return buildName, fmt.Errorf("compress %s failed: %v", outputPath, e)
 	}
 
-	return nil
+	return buildName, nil
 }
 
 func (a *Builder) NewBuildThread(wg *sync.WaitGroup, GOOS, GOARCH string, env ...string) {
 	wg.Add(1)
 	go func() {
-		if e := a.Build(GOOS, GOARCH, env...); e != nil {
-			log.Errorln(e)
+
+		if name, e := a.Build(GOOS, GOARCH, env...); e != nil {
+			log.Errorf("error occur while building %s: %v", name, e)
+		} else {
+			log.Infof("build %s success", name)
 		}
 		wg.Done()
 	}()
