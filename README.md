@@ -14,6 +14,8 @@ Flags:
       --[no-]soft-float  enable soft float for mips
       --os=OS            target os
       --arch=ARCH        target arch
+  -d, --output="build"   output dir path
+  -o, --name=NAME        output binary file name
 
 Args:
   <target>  target package
@@ -39,4 +41,14 @@ Args:
 
 ```shell
 ~$ release ./cmd/release --soft-float
+```
+
+默认情况下，会使用 target 目录的目录名，编译结果放在 build 目录下，这也是可以通过 flag 修改的
+
+```shell
+~$ release ./cmd/release --output dist # 修改输出目录为 dist
+~$ release ./cmd/release -d dist
+
+~$ release ./cmd/release --name asd # 修改名称为 asd
+~$ release ./cmd/release -o asd
 ```
