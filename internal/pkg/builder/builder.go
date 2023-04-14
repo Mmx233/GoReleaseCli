@@ -89,13 +89,17 @@ func (a *Builder) NewBuildThread(wg *sync.WaitGroup, GOOS, GOARCH string, env ..
 
 func (a *Builder) BuildArches() {
 	var wg = &sync.WaitGroup{}
+	var count uint
 	for GOOS, Arches := range a.Arch {
 		for _, GOARCH := range Arches {
 			a.NewBuildThread(wg, GOOS, GOARCH)
+			count++
 			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
 				a.NewBuildThread(wg, GOOS, GOARCH, "GOMIPS=softfloat")
+				count++
 			}
 		}
 	}
+	log.Infof("found %d arches, bulding...", count)
 	wg.Wait()
 }
