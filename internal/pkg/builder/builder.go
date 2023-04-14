@@ -67,7 +67,7 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 		return buildName, fmt.Errorf("build error: %v: %s", e, string(output))
 	}
 
-	if e = tools.MakeZip(outputPath); e != nil {
+	if e = tools.MakeZip(outputPath, a.OutputName); e != nil {
 		return buildName, fmt.Errorf("compress %s failed: %v", outputPath, e)
 	}
 
