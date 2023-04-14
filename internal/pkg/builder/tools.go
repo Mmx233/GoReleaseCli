@@ -11,10 +11,13 @@ import (
 
 func PrepareDirs(outputDir string) error {
 	_ = os.RemoveAll(outputDir)
-	return os.Mkdir(outputDir, 0600)
+	return os.MkdirAll(outputDir, 0600)
 }
 
 func LoadBinaryName() string {
+	if global.Commands.Name != "" {
+		return global.Commands.Name
+	}
 	target := strings.Replace(global.Commands.Target, `\`, "/", -1)
 	target = strings.TrimSuffix(target, "/")
 	temp := strings.Split(target, "/")

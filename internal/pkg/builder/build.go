@@ -1,15 +1,12 @@
 package builder
 
 import (
+	"github.com/Mmx233/GoReleaseCli/internal/global"
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	StoreDir = "build"
-)
-
 func Run() {
-	builder, e := NewBuilder(StoreDir)
+	builder, e := NewBuilder(global.Commands.Output)
 	if e != nil {
 		log.Fatalln(e)
 	}
