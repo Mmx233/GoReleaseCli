@@ -11,15 +11,16 @@ usage: release [<flags>] <target>
 Golang build production release helper.
 
 Flags:
-  -h, --[no-]help        Show context-sensitive help (also try --help-long and
-                         --help-man).
-  -v, --[no-]version     Show application version.
-      --ldflags=LDFLAGS  add custom ldflags
-      --[no-]soft-float  enable soft float for mips
-      --os=OS            target os
-      --arch=ARCH        target arch
-  -d, --output="build"   output dir path
-  -o, --name=NAME        output binary file name
+  -h, --[no-]help         Show context-sensitive help (also try --help-long and
+                          --help-man).
+  -v, --[no-]version      Show application version.
+  -j, --thread=(NumCpu+1) use how many thread to build
+      --ldflags=LDFLAGS   add custom ldflags
+      --[no-]soft-float   enable soft float for mips
+      --os=OS             target os
+      --arch=ARCH         target arch
+  -d, --output="build"    output dir path
+  -o, --name=NAME         output binary file name
 
 Args:
   <target>  target package
@@ -35,7 +36,7 @@ Args:
 ~$ release ./cmd/release --arch amd64,386
 ```
 
-编译时已带有 `-extldflags "-static" -s -w` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
+编译时已带有 `-extldflags "-static" -s -w` 以及 `trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
 
 ```shell
 ~$ release ./cmd/release --ldflags='-X main.Version=5.5.5'
