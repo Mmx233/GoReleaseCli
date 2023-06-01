@@ -6,6 +6,7 @@ import (
 	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
 	"github.com/Mmx233/GoReleaseCli/tools"
 	log "github.com/sirupsen/logrus"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -62,9 +63,10 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 	cmd := a.GoCMD.OutputName(outputPath).Exec()
 	env = append(env, "GOOS="+GOOS, "GOARCH="+GOARCH)
 	cmd.Env = append(cmd.Environ(), env...)
-	output, e := cmd.Output()
+	cmd.Stderr = os.Stderr
+	e := cmd.Wait()
 	if e != nil {
-		return buildName, fmt.Errorf("build error: %v: %s", e, string(output))
+		return buildName, fmt.Errorf("build error: %v", e)
 	}
 
 	if e = tools.MakeZip(outputPath, a.OutputName); e != nil {
