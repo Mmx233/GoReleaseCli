@@ -74,32 +74,38 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 	return buildName, nil
 }
 
-func (a *Builder) NewBuildThread(wg *sync.WaitGroup, GOOS, GOARCH string, env ...string) {
+func (a *Builder) NewBuildThread(wg *sync.WaitGroup, thread chan bool, GOOS, GOARCH string, env ...string) {
 	wg.Add(1)
 	go func() {
-
+		<-thread
 		if name, e := a.Build(GOOS, GOARCH, env...); e != nil {
 			log.Errorf("error occur while building %s: %v", name, e)
 		} else {
 			log.Infof("build %s success", name)
 		}
 		wg.Done()
+		thread <- true
 	}()
 }
 
 func (a *Builder) BuildArches() {
+	var threadChan = make(chan bool, int(global.Commands.Thread))
 	var wg = &sync.WaitGroup{}
 	var count uint
 	for GOOS, Arches := range a.Arch {
 		for _, GOARCH := range Arches {
-			a.NewBuildThread(wg, GOOS, GOARCH)
+			a.NewBuildThread(wg, threadChan, GOOS, GOARCH)
 			count++
 			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
-				a.NewBuildThread(wg, GOOS, GOARCH, "GOMIPS=softfloat")
+				a.NewBuildThread(wg, threadChan, GOOS, GOARCH, "GOMIPS=softfloat")
 				count++
 			}
 		}
 	}
 	log.Infof("found %d arches, bulding...", count)
+
+	for i := uint16(0); i < global.Commands.Thread; i++ {
+		threadChan <- true
+	}
 	wg.Wait()
 }
