@@ -64,7 +64,7 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 	env = append(env, "GOOS="+GOOS, "GOARCH="+GOARCH)
 	cmd.Env = append(cmd.Environ(), env...)
 	cmd.Stderr = os.Stderr
-	e := cmd.Wait()
+	e := cmd.Run()
 	if e != nil {
 		return buildName, fmt.Errorf("build error: %v", e)
 	}
