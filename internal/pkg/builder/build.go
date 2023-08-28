@@ -6,9 +6,9 @@ import (
 )
 
 func Run() {
-	builder, e := NewBuilder(global.Commands.Output)
-	if e != nil {
-		log.Fatalln(e)
+	builder, err := NewBuilder(global.Commands.Output)
+	if err != nil {
+		log.Fatalln(err)
 	}
 	builder.BuildArches()
 }

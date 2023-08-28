@@ -16,9 +16,9 @@ func MakeZip(filePath string, targetName string) error {
 
 	cmd := exec.Command("7z", "a", "-tzip", outputPath, baseName, "-mx9")
 	cmd.Dir = dir
-	e := cmd.Run()
-	if e != nil {
-		return e
+	err := cmd.Run()
+	if err != nil {
+		return err
 	}
 
 	cmd = exec.Command("7z", "rn", outputPath, baseName, targetName+ext)

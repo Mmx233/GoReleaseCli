@@ -64,13 +64,13 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 	env = append(env, "GOOS="+GOOS, "GOARCH="+GOARCH)
 	cmd.Env = append(cmd.Environ(), env...)
 	cmd.Stderr = os.Stderr
-	e := cmd.Run()
-	if e != nil {
-		return buildName, fmt.Errorf("build error: %v", e)
+	err := cmd.Run()
+	if err != nil {
+		return buildName, fmt.Errorf("build error: %v", err)
 	}
 
-	if e = tools.MakeZip(outputPath, a.OutputName); e != nil {
-		return buildName, fmt.Errorf("compress %s failed: %v", outputPath, e)
+	if err = tools.MakeZip(outputPath, a.OutputName); err != nil {
+		return buildName, fmt.Errorf("compress %s failed: %v", outputPath, err)
 	}
 
 	return buildName, nil
