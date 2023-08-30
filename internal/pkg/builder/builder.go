@@ -43,6 +43,12 @@ type Builder struct {
 	OutputDir  string
 	Arch       map[string][]string
 	GoCMD      goCMD.BuildCommand
+
+	WaitGroup *sync.WaitGroup
+	// 编译并发限制器
+	TreadChan chan bool
+	// 失败编译收集
+	FailedArchChan chan string
 }
 
 func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
@@ -76,38 +82,62 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 	return buildName, nil
 }
 
-func (a *Builder) NewBuildThread(wg *sync.WaitGroup, thread chan bool, GOOS, GOARCH string, env ...string) {
-	wg.Add(1)
+func (a *Builder) NewBuildThread(GOOS, GOARCH string, env ...string) {
+	a.WaitGroup.Add(1)
 	go func() {
-		<-thread
-		if name, e := a.Build(GOOS, GOARCH, env...); e != nil {
-			log.Errorf("error occur while building %s: %v", name, e)
+		<-a.TreadChan
+		name, err := a.Build(GOOS, GOARCH, env...)
+		if err != nil {
+			log.Errorf("error occur while building %s: %v", name, err)
 		} else {
 			log.Infof("build %s success", name)
 		}
-		wg.Done()
-		thread <- true
+		a.WaitGroup.Done()
+		a.TreadChan <- true
+
+		// 报告编译错误架构
+		if err != nil {
+			a.FailedArchChan <- name
+		}
 	}()
 }
 
 func (a *Builder) BuildArches() {
-	var threadChan = make(chan bool, int(global.Commands.Thread))
-	var wg = &sync.WaitGroup{}
+	// 准备编译携程
+	a.TreadChan = make(chan bool, int(global.Commands.Thread))
+	a.WaitGroup = &sync.WaitGroup{}
 	var count uint
 	for GOOS, Arches := range a.Arch {
 		for _, GOARCH := range Arches {
-			a.NewBuildThread(wg, threadChan, GOOS, GOARCH)
+			a.NewBuildThread(GOOS, GOARCH)
 			count++
 			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
-				a.NewBuildThread(wg, threadChan, GOOS, GOARCH, "GOMIPS=softfloat")
+				a.NewBuildThread(GOOS, GOARCH, "GOMIPS=softfloat")
 				count++
 			}
 		}
 	}
-	log.Infof("found %d arches, bulding...", count)
+	a.FailedArchChan = make(chan string, count)
 
+	log.Infof("found %d arches, building...", count)
+
+	// 开始编译
 	for i := uint16(0); i < global.Commands.Thread; i++ {
-		threadChan <- true
+		a.TreadChan <- true
 	}
-	wg.Wait()
+	a.WaitGroup.Wait()
+
+	// 打印编译结果
+	if len(a.FailedArchChan) == 0 {
+		log.Infoln("build completed successfully")
+	} else {
+		log.Infof("build %d arches succeed, %d arches failed", count-uint(len(a.FailedArchChan)), len(a.FailedArchChan))
+		failedArches := make([]string, len(a.FailedArchChan))
+		i := 0
+		for name := range a.FailedArchChan {
+			failedArches[i] = name
+			i++
+		}
+		log.Infof("failed arches: %s", strings.Join(failedArches, ", "))
+	}
 }
