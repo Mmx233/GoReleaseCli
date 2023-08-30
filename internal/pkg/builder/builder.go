@@ -129,14 +129,12 @@ func (a *Builder) BuildArches() {
 
 	// 打印编译结果
 	if len(a.FailedArchChan) == 0 {
-		log.Infoln("build completed successfully")
+		log.Infoln("completed successfully")
 	} else {
-		log.Infof("build %d arches succeed, %d arches failed", count-uint(len(a.FailedArchChan)), len(a.FailedArchChan))
+		log.Infof("completed: %d arches succeed, %d arches failed", count-uint(len(a.FailedArchChan)), len(a.FailedArchChan))
 		failedArches := make([]string, len(a.FailedArchChan))
-		i := 0
-		for name := range a.FailedArchChan {
-			failedArches[i] = name
-			i++
+		for i := len(a.FailedArchChan) - 1; i >= 0; i-- {
+			failedArches[i] = <-a.FailedArchChan
 		}
 		log.Infof("failed arches: %s", strings.Join(failedArches, ", "))
 	}
