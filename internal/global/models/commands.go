@@ -7,6 +7,7 @@ type Commands struct {
 	Target    string
 	Ldflags   string
 	SoftFloat bool
+	Cgo       bool
 	OS        string
 	Arch      string
 	Output    string

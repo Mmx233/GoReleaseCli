@@ -21,18 +21,26 @@ func NewBuilder(outputDir string) (*Builder, error) {
 		builder = builder.Ldflags(global.Commands.Ldflags)
 	}
 
-	arch, e := MatchTargetArch()
-	if e != nil {
-		return nil, e
+	arch, err := MatchTargetArch()
+	if err != nil {
+		return nil, err
 	}
 
-	if e = PrepareDirs(outputDir); e != nil {
-		return nil, e
+	if err = PrepareDirs(outputDir); err != nil {
+		return nil, err
+	}
+
+	var cgo string
+	if global.Commands.Cgo {
+		cgo = "CGO_ENABLED=1"
+	} else {
+		cgo = "CGO_ENABLED=0"
 	}
 
 	return &Builder{
 		OutputName: outputName,
 		OutputDir:  outputDir,
+		Cgo:        cgo,
 		Arch:       arch,
 		GoCMD:      builder,
 	}, nil
@@ -41,6 +49,7 @@ func NewBuilder(outputDir string) (*Builder, error) {
 type Builder struct {
 	OutputName string
 	OutputDir  string
+	Cgo        string
 	Arch       map[string][]string
 	GoCMD      goCMD.BuildCommand
 
@@ -67,8 +76,8 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 	outputPath := path.Join(a.OutputDir, buildName)
 
 	cmd := a.GoCMD.OutputName(outputPath).Exec()
-	env = append(env, "GOOS="+GOOS, "GOARCH="+GOARCH)
 	cmd.Env = append(cmd.Environ(), env...)
+	cmd.Env = append(cmd.Env, a.Cgo, "GOOS="+GOOS, "GOARCH="+GOARCH)
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
