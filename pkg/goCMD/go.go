@@ -41,7 +41,7 @@ func (c BuildCommand) Ldflags(value string) BuildCommand {
 }
 
 func (c BuildCommand) ProductionLdflags() BuildCommand {
-	return c.Ldflags(`-extldflags "-static" -s -w`)
+	return c.Ldflags(`-extldflags "-static" -fpic -s -w`)
 }
 
 func (c BuildCommand) OutputName(name string) BuildCommand {
