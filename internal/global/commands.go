@@ -28,5 +28,4 @@ func InitCommands(version string) {
 	Commands.App.Flag("output", "Output dir path.").Short('d').Default("build").StringVar(&Commands.Output)
 	Commands.App.Flag("name", "Output binary file name.").Short('o').StringVar(&Commands.Name)
 	Commands.App.Arg("target", "Target package.").Required().StringVar(&Commands.Target)
-
 }

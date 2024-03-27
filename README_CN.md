@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/Mmx233/GoReleaseCli?color=blueviolet&include_prereleases)](https://github.com/Mmx233/GoReleaseCli/releases)
 [![GoReport](https://goreportcard.com/badge/github.com/Mmx233/GoReleaseCli)](https://goreportcard.com/report/github.com/Mmx233/GoReleaseCli)
 
-English | [中文](./README_CN.md)
+[English](./README.md) | 中文
 
 ```shell
 ~$ release --help-long
@@ -33,11 +33,11 @@ Args:
   <target>  Target package.
 ```
 
-## :saxophone: Usage
+## :saxophone: 使用
 
-CGO, soft-float, compression is disabled by default.
+CGO、软浮点、生成压缩文件默认关闭
 
-By default, compile for all architecture types. You can use the flags `--os` and `--arch` to specify the operating system or architecture, separated by commas. The program will automatically match valid architectures for compilation.
+默认编译所有架构类型，可以使用 flag `--os` 和 `--arch` 指定系统或架构，使用英文逗号分隔。程序会自动匹配出有效架构进行编译
 
 ```shell
 ~$ release ./cmd/release
@@ -45,32 +45,32 @@ By default, compile for all architecture types. You can use the flags `--os` and
 ~$ release ./cmd/release --arch amd64,386
 ```
 
-During compilation, default ldflags include `-extldflags "-static -fpic" -s -w` as well as `trimpath`. If additional custom ldflags are needed, you can use an additional flag to append them.
+编译时默认已带有 `-extldflags "-static -fpic" -s -w` 以及 `trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
 
 ```shell
 ~$ release ./cmd/release --ldflags='-X main.Version=5.5.5'
 
-~$ release ./cmd/release --disable-default-ldflags # Remove default ldflags.
+~$ release ./cmd/release --disable-default-ldflags # 移除默认 ldflags
 ```
 
-When using `--soft-float`, a soft floating-point version will be added for all MIPS architectures.
+当使用 `--soft-float` 时，会为所有 mips 架构添加软浮点版本
 
 ```shell
 ~$ release ./cmd/release --soft-float
 ```
 
-Compress to the specified format, dependent on the 7z library. Currently supported formats include `zip` and `tar.gz`.
+压缩到指定格式，依赖 7z lib，目前支持 `zip` `tar.gz`
 
 ```shell
 ~$ release  ./cmd/release -c tar.gz
 ```
 
-By default, the directory name of the target directory will be used, and the compilation result will be placed in the `build` directory. This can also be modified using flags.
+默认情况下，会使用 target 目录的目录名，编译结果放在 `build` 目录下，这也是可以通过 flag 修改的
 
 ```shell
-~$ release ./cmd/release --output dist # Modify the output directory to be "dist"
+~$ release ./cmd/release --output dist # 修改输出目录为 dist
 ~$ release ./cmd/release -d dist
 
-~$ release ./cmd/release --name asd # Change the name to "asd".
+~$ release ./cmd/release --name asd # 修改名称为 asd
 ~$ release ./cmd/release -o asd
 ```
