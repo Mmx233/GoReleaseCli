@@ -83,7 +83,7 @@ func MakeTarGzip(filePath, targetName string) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(info.OutputPath)
+	defer os.Remove(path.Join(info.Dir, info.OutputPath))
 
 	if err = sevenZip.Rename(info.OutputPath, info.BaseName, info.TargetName); err != nil {
 		return err
