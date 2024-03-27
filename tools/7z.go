@@ -1,6 +1,7 @@
 package tools
 
 import (
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"path"
@@ -33,6 +34,13 @@ func DecodeCompressPath(filePath, targetName, targetFormat string) *CompressInfo
 
 		OutputPath: name + "." + targetFormat,
 		TargetName: targetName + ext,
+	}
+}
+
+func MustSevenZip() {
+	_, err := exec.LookPath("7z")
+	if err != nil {
+		log.Fatalln("7z not found in PATH")
 	}
 }
 
