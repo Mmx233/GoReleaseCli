@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"os"
 	"os/exec"
 	"path"
 	"strings"
@@ -8,9 +9,9 @@ import (
 
 type CompressInfo struct {
 	// src info
-	BaseName string
+	BaseName string // filename without parent path
 	Ext      string
-	Name     string
+	Name     string // basename without ext
 	Dir      string
 
 	// dist info
@@ -35,17 +36,48 @@ func DecodeCompressPath(filePath, targetName, targetFormat string) *CompressInfo
 	}
 }
 
+type SevenZip struct {
+	Dir string
+}
+
+func (z SevenZip) cmd(args ...string) *exec.Cmd {
+	cmd := exec.Command("7z", args...)
+	cmd.Dir = z.Dir
+	return cmd
+}
+
+func (z SevenZip) Add(method, dist, src string) error {
+	return z.cmd("a", "-t"+method, dist, src, "-mx9").Run()
+}
+
+func (z SevenZip) Rename(dist, from, to string) error {
+	return z.cmd("rn", dist, from, to).Run()
+}
+
 func MakeZip(filePath, targetName string) error {
 	info := DecodeCompressPath(filePath, targetName, "zip")
+	sevenZip := &SevenZip{Dir: info.Dir}
 
-	cmd := exec.Command("7z", "a", "-tzip", info.OutputPath, info.BaseName, "-mx9")
-	cmd.Dir = info.Dir
-	err := cmd.Run()
+	err := sevenZip.Add("zip", info.OutputPath, info.BaseName)
 	if err != nil {
 		return err
 	}
+	return sevenZip.Rename(info.OutputPath, info.BaseName, info.TargetName)
+}
 
-	cmd = exec.Command("7z", "rn", info.OutputPath, info.BaseName, info.TargetName)
-	cmd.Dir = info.Dir
-	return cmd.Run()
+func MakeTarGzip(filePath, targetName string) error {
+	info := DecodeCompressPath(filePath, targetName, "tar")
+	sevenZip := &SevenZip{Dir: info.Dir}
+
+	err := sevenZip.Add("tar", info.OutputPath, info.BaseName)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(info.OutputPath)
+
+	if err = sevenZip.Rename(info.OutputPath, info.BaseName, info.TargetName); err != nil {
+		return err
+	}
+
+	return sevenZip.Add("gzip", info.OutputPath+".gz", info.OutputPath)
 }
