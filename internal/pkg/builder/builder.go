@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
@@ -15,10 +16,10 @@ import (
 func NewBuilder(outputDir string) (*Builder, error) {
 	outputName := LoadBinaryName()
 
-	builder := goCMD.NewBuilder(global.Commands.Target)
-	builder = builder.ProductionLdflags().TrimPath()
+	goBuilder := goCMD.NewBuilder(global.Commands.Target)
+	goBuilder = goBuilder.ProductionLdflags().TrimPath()
 	if global.Commands.Ldflags != "" {
-		builder = builder.Ldflags(global.Commands.Ldflags)
+		goBuilder = goBuilder.Ldflags(global.Commands.Ldflags)
 	}
 
 	arch, err := MatchTargetArch()
@@ -26,24 +27,40 @@ func NewBuilder(outputDir string) (*Builder, error) {
 		return nil, err
 	}
 
+	builder := &Builder{
+		OutputName: outputName,
+		OutputDir:  outputDir,
+		Arch:       arch,
+		GoCMD:      goBuilder,
+	}
+
+	if global.Commands.Compress == "" {
+		builder.Compress = func(_, _ string) error {
+			return nil
+		}
+	} else {
+		tools.MustSevenZip()
+		switch global.Commands.Compress {
+		case "zip":
+			builder.Compress = tools.MakeZip
+		case "tar.gz":
+			builder.Compress = tools.MakeTarGzip
+		default:
+			return nil, errors.New("unsupported compress method: " + global.Commands.Compress)
+		}
+	}
+
+	if global.Commands.Cgo {
+		builder.Cgo = "CGO_ENABLED=1"
+	} else {
+		builder.Cgo = "CGO_ENABLED=0"
+	}
+
 	if err = PrepareDirs(outputDir); err != nil {
 		return nil, err
 	}
 
-	var cgo string
-	if global.Commands.Cgo {
-		cgo = "CGO_ENABLED=1"
-	} else {
-		cgo = "CGO_ENABLED=0"
-	}
-
-	return &Builder{
-		OutputName: outputName,
-		OutputDir:  outputDir,
-		Cgo:        cgo,
-		Arch:       arch,
-		GoCMD:      builder,
-	}, nil
+	return builder, nil
 }
 
 type Builder struct {
@@ -58,6 +75,7 @@ type Builder struct {
 	TreadChan chan bool
 	// 失败编译收集
 	FailedArchChan chan string
+	Compress       tools.MakeCompress
 }
 
 func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
@@ -84,7 +102,7 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 		return buildName, fmt.Errorf("build error: %v", err)
 	}
 
-	if err = tools.MakeZip(outputPath, a.OutputName); err != nil {
+	if err = a.Compress(outputPath, a.OutputName); err != nil {
 		return buildName, fmt.Errorf("compress %s failed: %v", outputPath, err)
 	}
 

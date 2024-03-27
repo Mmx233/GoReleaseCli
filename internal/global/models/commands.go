@@ -12,5 +12,7 @@ type Commands struct {
 	Arch      string
 	Output    string
 	Name      string
-	Thread    uint16
+
+	Compress string
+	Thread   uint16
 }

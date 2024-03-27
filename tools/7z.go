@@ -62,6 +62,8 @@ func (z SevenZip) Rename(dist, from, to string) error {
 	return z.cmd("rn", dist, from, to).Run()
 }
 
+type MakeCompress func(filePath, targetName string) error
+
 func MakeZip(filePath, targetName string) error {
 	info := DecodeCompressPath(filePath, targetName, "zip")
 	sevenZip := &SevenZip{Dir: info.Dir}

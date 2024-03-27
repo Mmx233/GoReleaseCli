@@ -16,6 +16,7 @@ func InitCommands(version string) {
 	Commands.App.HelpFlag.Short('h')
 
 	Commands.App.Flag("thread", "use how many thread to build").Short('j').Default(fmt.Sprint(runtime.NumCPU() + 1)).Uint16Var(&Commands.Thread)
+	Commands.App.Flag("compress", "compress binary").Short('c').HintOptions("zip", "tar.gz").StringVar(&Commands.Compress)
 
 	Commands.App.Flag("ldflags", "add custom ldflags").StringVar(&Commands.Ldflags)
 	Commands.App.Flag("soft-float", "enable soft float for mips").BoolVar(&Commands.SoftFloat)
@@ -26,4 +27,5 @@ func InitCommands(version string) {
 	Commands.App.Flag("output", "output dir path").Short('d').Default("build").StringVar(&Commands.Output)
 	Commands.App.Flag("name", "output binary file name").Short('o').StringVar(&Commands.Name)
 	Commands.App.Arg("target", "target package").Required().StringVar(&Commands.Target)
+
 }
