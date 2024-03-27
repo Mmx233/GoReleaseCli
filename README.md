@@ -11,22 +11,24 @@ usage: release [<flags>] <target>
 Golang build production release helper.
 
 Flags:
-  -h, --[no-]help         Show context-sensitive help (also try --help-long and
-                          --help-man).
-  -v, --[no-]version      Show application version.
-  -j, --thread=(NumCpu+1) How many threads to use for parallel compilation.
+  -h, --[no-]help          Show context-sensitive help (also try --help-long and
+                           --help-man).
+  -v, --[no-]version       Show application version.
+  -j, --thread=(NumCpu+1)  How many threads to use for parallel compilation.
   -c, --compress=COMPRESS  Compress the binary into the specified format of
                            compressed file.
-      --ldflags=LDFLAGS   Add custom ldflags.
-      --[no-]soft-float   Enable soft float for mips.
-      --[no-]cgo          Enable go cgo.
-      --os=OS             Target os.
-      --arch=ARCH         Target arch.
-  -d, --output="build"    Output dir path.
-  -o, --name=NAME         Output binary file name.
+      --[no-]disable-default-ldflags
+                           Disable ldflags added by default.
+      --ldflags=LDFLAGS    Add custom ldflags.
+      --[no-]soft-float    Enable soft float for mips.
+      --[no-]cgo           Enable go cgo.
+      --os=OS              Target os
+      --arch=ARCH          Target arch.
+  -d, --output="build"     Output dir path.
+  -o, --name=NAME          Output binary file name.
 
 Args:
-  <target>  target package
+  <target>  Target package.
 ```
 
 ## :saxophone: 使用
@@ -41,10 +43,12 @@ CGO、软浮点、生成压缩文件默认关闭
 ~$ release ./cmd/release --arch amd64,386
 ```
 
-编译时已带有 `-extldflags "-static -fpic" -s -w` 以及 `trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
+编译时默认已带有 `-extldflags "-static -fpic" -s -w` 以及 `trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
 
 ```shell
 ~$ release ./cmd/release --ldflags='-X main.Version=5.5.5'
+
+~$ release ./cmd/release --disable-default-ldflags # 移除默认 ldflags
 ```
 
 当使用 --soft-float 时，会为所有 mips 架构添加软浮点版本
