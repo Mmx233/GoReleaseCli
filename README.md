@@ -14,14 +14,16 @@ Flags:
   -h, --[no-]help         Show context-sensitive help (also try --help-long and
                           --help-man).
   -v, --[no-]version      Show application version.
-  -j, --thread=(NumCpu+1) use how many thread to build
-      --ldflags=LDFLAGS   add custom ldflags
-      --[no-]soft-float   enable soft float for mips
-      --[no-]cgo          enable cgo
-      --os=OS             target os
-      --arch=ARCH         target arch
-  -d, --output="build"    output dir path
-  -o, --name=NAME         output binary file name
+  -j, --thread=(NumCpu+1) How many threads to use for parallel compilation.
+  -c, --compress=COMPRESS  Compress the binary into the specified format of
+                           compressed file.
+      --ldflags=LDFLAGS   Add custom ldflags.
+      --[no-]soft-float   Enable soft float for mips.
+      --[no-]cgo          Enable go cgo.
+      --os=OS             Target os.
+      --arch=ARCH         Target arch.
+  -d, --output="build"    Output dir path.
+  -o, --name=NAME         Output binary file name.
 
 Args:
   <target>  target package
@@ -29,7 +31,7 @@ Args:
 
 ## :saxophone: 使用
 
-压缩依赖 7z，请确保 7z 在 bin 中。CGO、软浮点等默认关闭。
+CGO、软浮点、生成压缩文件默认关闭
 
 默认编译所有架构类型，可以使用 flag `--os` 和 `--arch` 指定系统或架构，使用英文逗号分隔。程序会自动匹配出有效架构进行编译
 
@@ -49,6 +51,12 @@ Args:
 
 ```shell
 ~$ release ./cmd/release --soft-float
+```
+
+压缩到指定格式，依赖 7z lib，目前支持 `zip` `tar.gz`
+
+```shell
+~$ release  ./cmd/release -c tar.gz
 ```
 
 默认情况下，会使用 target 目录的目录名，编译结果放在 build 目录下，这也是可以通过 flag 修改的
