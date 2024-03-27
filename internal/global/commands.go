@@ -17,6 +17,7 @@ func InitCommands(version string) {
 
 	Commands.App.Flag("thread", "How many threads to use for parallel compilation.").Short('j').Default(fmt.Sprint(runtime.NumCPU() + 1)).Uint16Var(&Commands.Thread)
 	Commands.App.Flag("compress", "Compress the binary into the specified format of compressed file.").Short('c').HintOptions("zip", "tar.gz").StringVar(&Commands.Compress)
+	Commands.App.Flag("disable-default-ldflags", "Disable ldflags added by default.").BoolVar(&Commands.DisableDefaultLdflags)
 
 	Commands.App.Flag("ldflags", "Add custom ldflags.").StringVar(&Commands.Ldflags)
 	Commands.App.Flag("soft-float", "Enable soft float for mips.").BoolVar(&Commands.SoftFloat)

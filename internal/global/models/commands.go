@@ -13,6 +13,7 @@ type Commands struct {
 	Output    string
 	Name      string
 
-	Compress string
-	Thread   uint16
+	Compress              string
+	Thread                uint16
+	DisableDefaultLdflags bool
 }
