@@ -17,6 +17,7 @@ Flags:
   -j, --thread=(NumCpu+1) use how many thread to build
       --ldflags=LDFLAGS   add custom ldflags
       --[no-]soft-float   enable soft float for mips
+      --[no-]cgo          enable cgo
       --os=OS             target os
       --arch=ARCH         target arch
   -d, --output="build"    output dir path
@@ -28,6 +29,8 @@ Args:
 
 ## :saxophone: 使用
 
+CGO、软浮点等默认关闭
+
 默认编译所有架构类型，可以使用 flag `--os` 和 `--arch` 指定系统或架构，使用英文逗号分隔。程序会自动匹配出有效架构进行编译
 
 ```shell
@@ -36,7 +39,7 @@ Args:
 ~$ release ./cmd/release --arch amd64,386
 ```
 
-编译时已带有 `-extldflags "-static" -s -w` 以及 `trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
+编译时已带有 `-extldflags "-static -fpic" -s -w` 以及 `trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
 
 ```shell
 ~$ release ./cmd/release --ldflags='-X main.Version=5.5.5'
