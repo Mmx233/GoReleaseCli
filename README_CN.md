@@ -74,3 +74,37 @@ CGO、软浮点、生成压缩文件默认关闭
 ~$ release ./cmd/release --name asd # 修改名称为 asd
 ~$ release ./cmd/release -o asd
 ```
+
+## :factory: 在 GitHub Action 中使用
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - v**
+jobs:
+  release_docker:
+    runs-on: ubuntu-latest
+    steps:
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build
+        uses: Mmx233/GoReleaseCli@v1.1.8
+        with:
+          target: ./cmd/derper
+          compress: tar.gz
+          soft-float: true
+
+      - name: Upload assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/*.tar.gz
+          prerelease: false
+```
