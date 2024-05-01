@@ -131,11 +131,11 @@ func (a *Builder) NewBuildThread(GOOS, GOARCH string, env ...string) {
 	}()
 }
 
-func (a *Builder) BuildArches() {
+func (a *Builder) BuildArches() error {
 	// 准备编译携程
 	a.TreadChan = make(chan bool, int(global.Config.Thread))
 	a.WaitGroup = &sync.WaitGroup{}
-	var count uint
+	var count int
 	for GOOS, Arches := range a.Arch {
 		for _, GOARCH := range Arches {
 			a.NewBuildThread(GOOS, GOARCH)
@@ -159,12 +159,15 @@ func (a *Builder) BuildArches() {
 	// 打印编译结果
 	if len(a.FailedArchChan) == 0 {
 		log.Infoln("completed successfully")
+	} else if len(a.FailedArchChan) == count {
+		return errors.New("all arches build failed")
 	} else {
-		log.Infof("completed: %d arches succeed, %d arches failed", count-uint(len(a.FailedArchChan)), len(a.FailedArchChan))
+		log.Infof("completed: %d arches succeed, %d arches failed", count-len(a.FailedArchChan), len(a.FailedArchChan))
 		failedArches := make([]string, len(a.FailedArchChan))
 		for i := len(a.FailedArchChan) - 1; i >= 0; i-- {
 			failedArches[i] = <-a.FailedArchChan
 		}
 		log.Infof("failed arches: %s", strings.Join(failedArches, ", "))
 	}
+	return nil
 }

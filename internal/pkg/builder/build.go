@@ -10,5 +10,7 @@ func Run() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	builder.BuildArches()
+	if err = builder.BuildArches(); err != nil {
+		log.Fatalln(err)
+	}
 }
