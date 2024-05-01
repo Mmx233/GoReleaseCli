@@ -1,0 +1,31 @@
+name: Go Release Action
+description: >
+  Build release for go
+inputs:
+  target:
+    description: 'Target package'
+    required: true
+  name:
+    description: 'Output binary file name'
+  output:
+    description: 'Output dir path'
+  arch:
+    description: 'Target arch'
+  os:
+    description: 'Target os'
+  cgo:
+    description: 'Enable go cgo'
+  soft-float:
+    description: 'Enable soft float for mips'
+  ldflags:
+    description: 'Add custom ldflags'
+  disable-default-ldflags:
+    description: 'Disable ldflags added by default'
+  tread:
+    description: 'How many threads to use for parallel compilation'
+  compress:
+    description: 'Compress the binary into the specified format of compressed file'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

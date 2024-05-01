@@ -19,7 +19,7 @@ func NewCommands(version string) *kingpin.Application {
 	app.Flag("ldflags", "Add custom ldflags.").StringVar(&Config.Ldflags)
 	app.Flag("soft-float", "Enable soft float for mips.").BoolVar(&Config.SoftFloat)
 	app.Flag("cgo", "Enable go cgo.").BoolVar(&Config.Cgo)
-	app.Flag("os", "Target os").HintOptions("windows,linux").StringVar(&Config.OS)
+	app.Flag("os", "Target os.").HintOptions("windows,linux").StringVar(&Config.OS)
 	app.Flag("arch", "Target arch.").HintOptions("386,amd64").StringVar(&Config.Arch)
 
 	app.Flag("output", "Output dir path.").Short('d').Default("build").StringVar(&Config.Output)
