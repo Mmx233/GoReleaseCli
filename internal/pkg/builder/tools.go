@@ -15,10 +15,10 @@ func PrepareDirs(outputDir string) error {
 }
 
 func LoadBinaryName() string {
-	if global.Commands.Name != "" {
-		return global.Commands.Name
+	if global.Config.Name != "" {
+		return global.Config.Name
 	}
-	target := strings.Replace(global.Commands.Target, `\`, "/", -1)
+	target := strings.Replace(global.Config.Target, `\`, "/", -1)
 	target = strings.TrimSuffix(target, "/")
 	temp := strings.Split(target, "/")
 	return temp[len(temp)-1]
@@ -38,11 +38,11 @@ func BuildName(binaryName string, suffix ...string) string {
 func MatchTargetArch() (map[string][]string, error) {
 	var targetOS []string
 	var targetArch []string
-	if global.Commands.OS != "" {
-		targetOS = strings.Split(global.Commands.OS, ",")
+	if global.Config.OS != "" {
+		targetOS = strings.Split(global.Config.OS, ",")
 	}
-	if global.Commands.Arch != "" {
-		targetArch = strings.Split(global.Commands.Arch, ",")
+	if global.Config.Arch != "" {
+		targetArch = strings.Split(global.Config.Arch, ",")
 	}
 
 	var arch = make(map[string][]string, len(targetOS))

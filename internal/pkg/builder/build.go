@@ -6,7 +6,7 @@ import (
 )
 
 func Run() {
-	builder, err := NewBuilder(global.Commands.Output)
+	builder, err := NewBuilder(global.Config.Output)
 	if err != nil {
 		log.Fatalln(err)
 	}

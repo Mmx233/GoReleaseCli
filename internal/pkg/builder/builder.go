@@ -16,12 +16,12 @@ import (
 func NewBuilder(outputDir string) (*Builder, error) {
 	outputName := LoadBinaryName()
 
-	goBuilder := goCMD.NewBuilder(global.Commands.Target)
-	if !global.Commands.DisableDefaultLdflags {
+	goBuilder := goCMD.NewBuilder(global.Config.Target)
+	if !global.Config.DisableDefaultLdflags {
 		goBuilder = goBuilder.ProductionLdflags().TrimPath()
 	}
-	if global.Commands.Ldflags != "" {
-		goBuilder = goBuilder.Ldflags(global.Commands.Ldflags)
+	if global.Config.Ldflags != "" {
+		goBuilder = goBuilder.Ldflags(global.Config.Ldflags)
 	}
 
 	arch, err := MatchTargetArch()
@@ -36,23 +36,23 @@ func NewBuilder(outputDir string) (*Builder, error) {
 		GoCMD:      goBuilder,
 	}
 
-	if global.Commands.Compress == "" {
+	if global.Config.Compress == "" {
 		builder.Compress = func(_, _ string) error {
 			return nil
 		}
 	} else {
 		tools.MustSevenZip()
-		switch global.Commands.Compress {
+		switch global.Config.Compress {
 		case "zip":
 			builder.Compress = tools.MakeZip
 		case "tar.gz":
 			builder.Compress = tools.MakeTarGzip
 		default:
-			return nil, errors.New("unsupported compress method: " + global.Commands.Compress)
+			return nil, errors.New("unsupported compress method: " + global.Config.Compress)
 		}
 	}
 
-	if global.Commands.Cgo {
+	if global.Config.Cgo {
 		builder.Cgo = "CGO_ENABLED=1"
 	} else {
 		builder.Cgo = "CGO_ENABLED=0"
@@ -133,14 +133,14 @@ func (a *Builder) NewBuildThread(GOOS, GOARCH string, env ...string) {
 
 func (a *Builder) BuildArches() {
 	// 准备编译携程
-	a.TreadChan = make(chan bool, int(global.Commands.Thread))
+	a.TreadChan = make(chan bool, int(global.Config.Thread))
 	a.WaitGroup = &sync.WaitGroup{}
 	var count uint
 	for GOOS, Arches := range a.Arch {
 		for _, GOARCH := range Arches {
 			a.NewBuildThread(GOOS, GOARCH)
 			count++
-			if global.Commands.SoftFloat && strings.Contains(GOARCH, "mips") {
+			if global.Config.SoftFloat && strings.Contains(GOARCH, "mips") {
 				a.NewBuildThread(GOOS, GOARCH, "GOMIPS=softfloat")
 				count++
 			}
@@ -151,7 +151,7 @@ func (a *Builder) BuildArches() {
 	log.Infof("found %d arches, building...", count)
 
 	// 开始编译
-	for i := uint16(0); i < global.Commands.Thread; i++ {
+	for i := uint16(0); i < global.Config.Thread; i++ {
 		a.TreadChan <- true
 	}
 	a.WaitGroup.Wait()
