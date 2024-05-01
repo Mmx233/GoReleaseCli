@@ -15,13 +15,12 @@ func init() {
 	}); err != nil {
 		log.Fatalln(err)
 	}
-
-	if global.Config.Output == "" {
-		global.Config.Output = "build"
-	}
-	global.Config.Output = path.Join("/github/workspace", global.Config.Output)
 	if global.Config.Thread == 0 {
 		global.Config.Thread = uint16(runtime.NumCPU() + 1)
+	}
+	global.Config.Output = path.Join("/github/workspace", global.Config.Output)
+	if err := global.Init(); err != nil {
+		log.Fatalln(err)
 	}
 }
 
