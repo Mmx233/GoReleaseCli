@@ -19,6 +19,4 @@ RUN apk update && \
 COPY --from=builder  /build/runner /usr/bin/runner
 RUN chmod +x /usr/bin/runner
 
-WORKDIR /data
-
 ENTRYPOINT [ "/usr/bin/runner" ]
