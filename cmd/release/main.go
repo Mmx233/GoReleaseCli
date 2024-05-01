@@ -10,7 +10,6 @@ import (
 var Version = "-.-.-"
 
 func main() {
-	global.InitCommands(Version)
-	kingpin.MustParse(global.Commands.App.Parse(os.Args[1:]))
+	kingpin.MustParse(global.NewCommands(Version).Parse(os.Args[1:]))
 	builder.Run()
 }

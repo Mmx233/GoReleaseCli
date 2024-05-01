@@ -1,9 +1,8 @@
-package models
+package global
 
-import "github.com/alecthomas/kingpin/v2"
+var Config _Config
 
-type Commands struct {
-	App       *kingpin.Application
+type _Config struct {
 	Target    string
 	Ldflags   string
 	SoftFloat bool
