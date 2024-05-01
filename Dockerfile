@@ -11,6 +11,11 @@ RUN go env -w GO111MODULE=auto \
 
 FROM golang:alpine
 
+RUN apk update && \
+    apk upgrade --no-cache && \
+    apk add --no-cache 7zip && \
+    rm -rf /var/cache/apk/*
+
 COPY --from=builder  /build/runner /usr/bin/runner
 RUN chmod +x /usr/bin/runner
 
