@@ -32,5 +32,5 @@ type _Config struct {
 	Compress              string `env:"COMPRESS"`
 	Thread                uint16 `env:"TREAD"`
 	DisableDefaultLdflags bool   `env:"DISABLE-DEFAULT-LDFLAGS"`
-	Perm                  string `env:"PERM,notEmpty" envDefault:"0770"`
+	Perm                  string `env:"PERM,notEmpty" envDefault:"0777"`
 }
