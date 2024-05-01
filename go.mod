@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
-	github.com/caarlos0/env/v6 v6.10.1
+	github.com/caarlos0/env/v11 v11.0.0
 	github.com/sirupsen/logrus v1.9.3
 )
 

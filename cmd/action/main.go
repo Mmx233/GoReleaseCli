@@ -3,13 +3,13 @@ package main
 import (
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	"github.com/Mmx233/GoReleaseCli/internal/pkg/builder"
-	"github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v11"
 	log "github.com/sirupsen/logrus"
 	"runtime"
 )
 
 func init() {
-	if err := env.Parse(&global.Config, env.Options{
+	if err := env.ParseWithOptions(&global.Config, env.Options{
 		Prefix: "INPUT_",
 	}); err != nil {
 		log.Fatalln(err)
