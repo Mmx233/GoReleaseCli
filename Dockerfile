@@ -1,4 +1,4 @@
-FROM golang:latest AS builder
+FROM golang:alpine AS builder
 
 WORKDIR /build
 
@@ -9,7 +9,7 @@ RUN go env -w GO111MODULE=auto \
     && set -ex \
     && go build -ldflags "-s -w" -o runner ./cmd/action
 
-FROM alpine:latest
+FROM golang:alpine
 
 COPY --from=builder  /build/runner /usr/bin/runner
 RUN chmod +x /usr/bin/runner
