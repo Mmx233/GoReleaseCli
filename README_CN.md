@@ -59,7 +59,7 @@ CGO、软浮点、生成压缩文件默认关闭
 ~$ release ./cmd/release --soft-float
 ```
 
-压缩到指定格式，依赖 7z lib，目前支持 `zip` `tar.gz`
+压缩到指定格式，依赖 `7z` lib，没有 `7z` 时会尝试使用 `zip` + `zipnote` / `tar` 分别为不同压缩类型压缩，目前支持 `zip` `tar.gz`
 
 ```shell
 ~$ release  ./cmd/release -c tar.gz
@@ -77,6 +77,8 @@ CGO、软浮点、生成压缩文件默认关闭
 
 ## :factory: 在 GitHub Action 中使用
 
+### 在容器中构建
+
 ```yaml
 name: Release
 
@@ -93,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build
         uses: Mmx233/GoReleaseCli@v1.1.8
@@ -106,5 +108,44 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: build/*.tar.gz
+          prerelease: false
+```
+
+### 在 Action Runner 环境中构建
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - v**
+jobs:
+  release_docker:
+    runs-on: ubuntu-latest
+    steps:
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Release Cli
+        uses: robinraju/release-downloader@v1.10
+        with:
+          repository: "Mmx233/GoReleaseCli"
+          latest: true
+          fileName: 'release_linux_amd64.tar.gz'
+          extract: true
+          out-file-path: './build/'
+
+      - name: Build
+        run: ./build/release ./cmd/derper --perm 777 -c tar.gz --soft-float --output build/output
+
+      - name: Upload assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/output/*.tar.gz
           prerelease: false
 ```

@@ -59,7 +59,7 @@ When using `--soft-float`, a soft floating-point version will be added for all M
 ~$ release ./cmd/release --soft-float
 ```
 
-Compress to the specified format, dependent on the 7z library. Currently supported formats include `zip` and `tar.gz`.
+Compress to the specified format, dependent on the `7z` library. If `7z` library is not exist, it will try to use `zip` + `zipnote` or `tar` for different format. Currently supported formats include `zip` and `tar.gz`.
 
 ```shell
 ~$ release  ./cmd/release -c tar.gz
@@ -77,6 +77,8 @@ By default, the directory name of the target directory will be used, and the com
 
 ## :factory: Use in GitHub Action
 
+### Build in container
+
 ```yaml
 name: Release
 
@@ -93,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build
         uses: Mmx233/GoReleaseCli@v1.1.8
@@ -106,5 +108,44 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: build/*.tar.gz
+          prerelease: false
+```
+
+### Build in runner environment
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - v**
+jobs:
+  release_docker:
+    runs-on: ubuntu-latest
+    steps:
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Release Cli
+        uses: robinraju/release-downloader@v1.10
+        with:
+          repository: "Mmx233/GoReleaseCli"
+          latest: true
+          fileName: 'release_linux_amd64.tar.gz'
+          extract: true
+          out-file-path: './build/'
+
+      - name: Build
+        run: ./build/release ./cmd/derper --perm 777 -c tar.gz --soft-float --output build/output
+
+      - name: Upload assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/output/*.tar.gz
           prerelease: false
 ```
