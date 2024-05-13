@@ -10,7 +10,7 @@ var (
 	SevenZipMakeZip = _NewMakeFn("zip", func(info *PathInfo) error {
 		return _SevenZip{info: info}.MakeZip()
 	})
-	SevenZipMakeTarGz = _NewMakeFn("tar", func(info *PathInfo) error {
+	SevenZipMakeTarGzip = _NewMakeFn("tar", func(info *PathInfo) error {
 		return _SevenZip{info: info}.MakeTarGzip()
 	})
 )

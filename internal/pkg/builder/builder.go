@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
+	"github.com/Mmx233/GoReleaseCli/pkg/compress"
 	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
-	"github.com/Mmx233/GoReleaseCli/tools"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"path"
@@ -41,15 +41,30 @@ func NewBuilder(outputDir string) (*Builder, error) {
 			return nil
 		}
 	} else {
-		tools.MustSevenZip()
-		switch global.Config.Compress {
-		case "zip":
-			builder.Compress = tools.MakeZip
-		case "tar.gz":
-			builder.Compress = tools.MakeTarGzip
-		default:
-			return nil, errors.New("unsupported compress method: " + global.Config.Compress)
+		var compressor compress.Make
+		if compress.SevenZipAvailable() {
+			switch global.Config.Compress {
+			case "zip":
+				compressor = compress.SevenZipMakeZip
+			case "tar.gz":
+				compressor = compress.SevenZipMakeTarGzip
+			}
+		} else {
+			switch global.Config.Compress {
+			case "zip":
+				if compress.ZipAvailable() {
+					compressor = compress.ZipMakeZip
+				}
+			case "tar.gz":
+				if compress.TarAvailable() {
+					compressor = compress.TarMakeTarGzip
+				}
+			}
 		}
+		if compressor == nil {
+			log.Fatalf("compression library is missing or the compression format (%s) is not supported", global.Config.Compress)
+		}
+		builder.Compress = compressor
 	}
 
 	if global.Config.Cgo {
@@ -77,7 +92,7 @@ type Builder struct {
 	TreadChan chan bool
 	// 失败编译收集
 	FailedArchChan chan string
-	Compress       tools.MakeCompress
+	Compress       compress.Make
 }
 
 func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {

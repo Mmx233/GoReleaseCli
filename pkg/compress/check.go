@@ -1,6 +1,8 @@
 package compress
 
-import "os/exec"
+import (
+	"os/exec"
+)
 
 func _CommandAvailable(name string) bool {
 	_, err := exec.LookPath(name)
@@ -12,7 +14,7 @@ func SevenZipAvailable() bool {
 }
 
 func ZipAvailable() bool {
-	return _CommandAvailable("zip")
+	return _CommandAvailable("zip") && _CommandAvailable("zipnote")
 }
 
 func TarAvailable() bool {
