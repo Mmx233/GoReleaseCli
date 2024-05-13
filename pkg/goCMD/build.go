@@ -1,7 +1,6 @@
 package goCMD
 
 import (
-	"os"
 	"os/exec"
 	"strings"
 )
@@ -31,7 +30,7 @@ func (c BuildCommand) Run() ([]byte, error) {
 }
 
 func (c BuildCommand) TrimPath() BuildCommand {
-	c.args = append(c.args, "-gcflags=-trimpath="+os.Getenv("GOPATH"), "-asmflags=-trimpath="+os.Getenv("GOPATH"))
+	c.args = append(c.args, "-trimpath")
 	return c
 }
 

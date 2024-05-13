@@ -16,9 +16,9 @@ import (
 func NewBuilder(outputDir string) (*Builder, error) {
 	outputName := LoadBinaryName()
 
-	goBuilder := goCMD.NewBuilder(global.Config.Target)
+	goBuilder := goCMD.NewBuilder(global.Config.Target).TrimPath()
 	if !global.Config.DisableDefaultLdflags {
-		goBuilder = goBuilder.ProductionLdflags().TrimPath()
+		goBuilder = goBuilder.ProductionLdflags()
 	}
 	if global.Config.Ldflags != "" {
 		goBuilder = goBuilder.Ldflags(global.Config.Ldflags)

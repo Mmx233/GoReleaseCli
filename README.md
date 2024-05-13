@@ -45,7 +45,7 @@ By default, compile for all architecture types. You can use the flags `--os` and
 ~$ release ./cmd/release --arch amd64,386
 ```
 
-During compilation, default ldflags include `-extldflags "-static -fpic" -s -w` as well as `trimpath`. If additional custom ldflags are needed, you can use an additional flag to append them.
+During compilation, default ldflags include `-extldflags "-static -fpic" -s -w` as well as `-trimpath`. If additional custom ldflags are needed, you can use an additional flag to append them.
 
 ```shell
 ~$ release ./cmd/release --ldflags='-X main.Version=5.5.5'

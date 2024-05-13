@@ -45,7 +45,7 @@ CGO、软浮点、生成压缩文件默认关闭
 ~$ release ./cmd/release --arch amd64,386
 ```
 
-编译时默认已带有 `-extldflags "-static -fpic" -s -w` 以及 `trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
+编译时默认已带有 `-extldflags "-static -fpic" -s -w` 以及 `-trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加
 
 ```shell
 ~$ release ./cmd/release --ldflags='-X main.Version=5.5.5'
