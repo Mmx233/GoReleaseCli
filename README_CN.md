@@ -105,7 +105,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build
-        uses: Mmx233/GoReleaseCli@v1.1.8
+        uses: Mmx233/GoReleaseCli@v1.2.2
         with:
           target: ./cmd/derper
           compress: tar.gz
@@ -147,7 +147,7 @@ jobs:
           out-file-path: './build/'
 
       - name: Build
-        run: ./build/release ./cmd/derper --perm 777 -c tar.gz --soft-float --output build/output
+        run: ./build/release ./cmd/derper --perm 777 -c tar.gz --extra-arches --output build/output
 
       - name: Upload assets
         uses: softprops/action-gh-release@v1
