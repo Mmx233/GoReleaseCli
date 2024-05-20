@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"container/list"
 	"errors"
 	"fmt"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
@@ -80,6 +81,11 @@ func NewBuilder(outputDir string) (*Builder, error) {
 	return builder, nil
 }
 
+type Task struct {
+	Name  string
+	Build func() error
+}
+
 type Builder struct {
 	OutputName string
 	OutputDir  string
@@ -87,15 +93,13 @@ type Builder struct {
 	Arch       map[string][]string
 	GoCMD      goCMD.BuildCommand
 
-	WaitGroup *sync.WaitGroup
-	// 编译并发限制器
-	TreadChan chan bool
-	// 失败编译收集
-	FailedArchChan chan string
+	WaitGroup      *sync.WaitGroup
+	TaskChan       chan *Task
+	FailedTaskChan chan string
 	Compress       compress.Make
 }
 
-func (a *Builder) Build(GOOS, GOARCH string, nameSuffix, env []string) (string, error) {
+func (a *Builder) NewTask(GOOS, GOARCH string, nameSuffix, env []string) *Task {
 	outputName := a.OutputName
 	if GOOS == "windows" {
 		outputName += ".exe"
@@ -107,86 +111,97 @@ func (a *Builder) Build(GOOS, GOARCH string, nameSuffix, env []string) (string, 
 	cmd.Env = append(cmd.Environ(), env...)
 	cmd.Env = append(cmd.Env, a.Cgo, "GOOS="+GOOS, "GOARCH="+GOARCH)
 	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		return buildName, fmt.Errorf("build error: %v", err)
-	}
 
-	if err = a.Compress(outputPath, a.OutputName); err != nil {
-		return buildName, fmt.Errorf("compress %s failed: %v", outputPath, err)
+	return &Task{
+		Name: buildName,
+		Build: func() error {
+			err := cmd.Run()
+			if err != nil {
+				return fmt.Errorf("build error: %v", err)
+			}
+			if err = a.Compress(outputPath, a.OutputName); err != nil {
+				return fmt.Errorf("compress %s failed: %v", outputPath, err)
+			}
+			return nil
+		},
 	}
-
-	return buildName, nil
 }
 
-func (a *Builder) NewBuildThread(GOOS, GOARCH string, nameSuffix, env []string) {
-	a.WaitGroup.Add(1)
-	go func() {
-		<-a.TreadChan
-		name, err := a.Build(GOOS, GOARCH, nameSuffix, env)
-		if err != nil {
-			log.Errorf("error occur while building %s: %v", name, err)
+func (a *Builder) BuildThread() {
+	for {
+		task, ok := <-a.TaskChan
+		if !ok {
+			a.WaitGroup.Done()
+			return
+		}
+		if err := task.Build(); err != nil {
+			log.Errorf("error occur while building %s: %v", task.Name, err)
+			a.FailedTaskChan <- task.Name
 		} else {
-			log.Infof("build %s success", name)
+			log.Infof("build %s success", task.Name)
 		}
-		a.WaitGroup.Done()
-		a.TreadChan <- true
-
-		// 报告编译错误架构
-		if err != nil {
-			a.FailedArchChan <- name
-		}
-	}()
+	}
 }
 
 func (a *Builder) BuildArches() error {
-	// prepare compile channels and goroutines
-	a.TreadChan = make(chan bool, int(global.Config.Thread))
-	a.WaitGroup = &sync.WaitGroup{}
-	var count int
+	// match all build tasks
+	var tasks = list.New()
+	a.TaskChan = make(chan *Task)
 	for GOOS, Arches := range a.Arch {
 		for _, GOARCH := range Arches {
 			if global.Config.ExtraArches {
 				extraArches, ok := goCMD.ExtraArches[GOARCH]
 				if !ok {
-					a.NewBuildThread(GOOS, GOARCH, nil, nil)
-					count++
+					tasks.PushBack(a.NewTask(GOOS, GOARCH, nil, nil))
 					continue
 				}
 				for _, extraArch := range extraArches {
 					for _, value := range extraArch.Values {
 						env := fmt.Sprintf("%s=%s", extraArch.EnvKey, value.Value)
-						a.NewBuildThread(GOOS, GOARCH, value.Names(global.Config.ExtraArchesShowDefault), []string{env})
-						count++
+						tasks.PushBack(a.NewTask(GOOS, GOARCH, value.Names(global.Config.ExtraArchesShowDefault), []string{env}))
 						if value.ExtraFloat != "" {
-							a.NewBuildThread(GOOS, GOARCH, value.NamesExtraFloat(global.Config.ExtraArchesShowDefault), []string{env + "," + value.ExtraFloat})
-							count++
+							tasks.PushBack(a.NewTask(GOOS, GOARCH, value.NamesExtraFloat(global.Config.ExtraArchesShowDefault), []string{env + "," + value.ExtraFloat}))
 						}
 					}
 				}
 			}
 		}
 	}
-	a.FailedArchChan = make(chan string, count)
+	if tasks.Len() == 0 {
+		return fmt.Errorf("no valid arch found")
+	}
 
-	log.Infof("found %d arches, building...", count)
+	log.Infof("found %d arches, building...", tasks.Len())
+
+	// prepare channels and goroutines
+	a.FailedTaskChan = make(chan string, tasks.Len())
+	thread := int(global.Config.Thread)
+	if tasks.Len() < thread {
+		thread = tasks.Len()
+	}
+	a.WaitGroup = &sync.WaitGroup{}
+	a.WaitGroup.Add(thread)
+	for range thread {
+		go a.BuildThread()
+	}
 
 	// start compile
-	for i := uint16(0); i < global.Config.Thread; i++ {
-		a.TreadChan <- true
+	for el := tasks.Front(); el != nil; el = el.Next() {
+		a.TaskChan <- el.Value.(*Task)
 	}
+	close(a.TaskChan)
 	a.WaitGroup.Wait()
 
 	// print compile result
-	if len(a.FailedArchChan) == 0 {
+	if len(a.FailedTaskChan) == 0 {
 		log.Infoln("completed successfully")
-	} else if len(a.FailedArchChan) == count {
+	} else if len(a.FailedTaskChan) == tasks.Len() {
 		return errors.New("all arches build failed")
 	} else {
-		log.Infof("completed: %d arches succeed, %d arches failed", count-len(a.FailedArchChan), len(a.FailedArchChan))
-		failedArches := make([]string, len(a.FailedArchChan))
-		for i := len(a.FailedArchChan) - 1; i >= 0; i-- {
-			failedArches[i] = <-a.FailedArchChan
+		log.Infof("completed: %d arches succeed, %d arches failed", tasks.Len()-len(a.FailedTaskChan), len(a.FailedTaskChan))
+		failedArches := make([]string, len(a.FailedTaskChan))
+		for i := len(a.FailedTaskChan) - 1; i >= 0; i-- {
+			failedArches[i] = <-a.FailedTaskChan
 		}
 		log.Infof("failed arches: %s", strings.Join(failedArches, ", "))
 	}
