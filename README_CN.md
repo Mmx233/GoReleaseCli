@@ -26,6 +26,9 @@ Flags:
       --[no-]cgo           Enable go cgo.
       --os=OS              Target os
       --arch=ARCH          Target arch.
+      --[no-]extra-arches  Build all extra arches.
+      --[no-]extra-arches-show-default
+                           Show default extra arch name.
   -d, --output="build"     Output dir path.
   -o, --name=NAME          Output binary file name.
 
@@ -53,10 +56,14 @@ CGO、软浮点、生成压缩文件默认关闭
 ~$ release ./cmd/release --disable-default-ldflags # 移除默认 ldflags
 ```
 
-当使用 `--soft-float` 时，会为所有 mips 架构添加软浮点版本
+当使用 `--extra-arches` 时，会编译出所有子架构如 arm/v6 arm/v7
+
+默认情况下，默认架构编译结果的名称不会添加额外的子架构后缀。但你可以通过 `--extra-arches-show-default` 启用它
 
 ```shell
-~$ release ./cmd/release --soft-float
+~$ release ./cmd/release --extra-arches
+
+~$ release ./cmd/release --extra-arches --extra-arches-show-default # 为默认架构添加子架构后缀
 ```
 
 压缩到指定格式，依赖 `7z` lib，没有 `7z` 时会尝试使用 `zip` + `zipnote` / `tar` 分别为不同压缩类型压缩，目前支持 `zip` `tar.gz`

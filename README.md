@@ -22,10 +22,12 @@ Flags:
       --[no-]disable-default-ldflags
                            Disable ldflags added by default.
       --ldflags=LDFLAGS    Add custom ldflags.
-      --[no-]soft-float    Enable soft float for mips.
       --[no-]cgo           Enable go cgo.
       --os=OS              Target os
       --arch=ARCH          Target arch.
+      --[no-]extra-arches  Build all extra arches.
+      --[no-]extra-arches-show-default
+                           Show default extra arch name.
   -d, --output="build"     Output dir path.
   -o, --name=NAME          Output binary file name.
 
@@ -53,10 +55,14 @@ During compilation, default ldflags include `-extldflags "-static -fpic" -s -w` 
 ~$ release ./cmd/release --disable-default-ldflags # Remove default ldflags.
 ```
 
-When using `--soft-float`, a soft floating-point version will be added for all MIPS architectures.
+When using `--extra-arches`, all child arches such as arm/v6, arm/v7 will be built.
+
+By default, default arch will not add extra suffix to describe it's accurate arch. You can change this with `--extra-arches-show-default` flag.
 
 ```shell
-~$ release ./cmd/release --soft-float
+~$ release ./cmd/release --extra-arches
+
+~$ release ./cmd/release --extra-arches --extra-arches-show-default # Add arch suffix to default arch.
 ```
 
 Compress to the specified format, dependent on the `7z` library. If `7z` library is not exist, it will try to use `zip` + `zipnote` or `tar` for different format. Currently supported formats include `zip` and `tar.gz`.
