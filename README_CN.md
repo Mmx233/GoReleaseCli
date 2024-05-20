@@ -109,7 +109,6 @@ jobs:
         with:
           target: ./cmd/derper
           compress: tar.gz
-          soft-float: true
 
       - name: Upload assets
         uses: softprops/action-gh-release@v1
