@@ -1,3 +1,3 @@
 @echo off
 SET /p v=Version:
-release ./cmd/release --ldflags="-X main.Version=%v%" --soft-float -c tar.gz
+go run ./cmd/release ./cmd/release --ldflags="-X main.Version=%v%" --extra-arches -c tar.gz
