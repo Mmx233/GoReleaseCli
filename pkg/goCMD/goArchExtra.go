@@ -9,8 +9,27 @@ type ArchExtraValue struct {
 	// IsDefault describes whether this extra arch is set by default.
 	IsDefault  bool
 	ExtraFloat string
+
+	// Name maybe empty string, use for replace value of Value in result file name
+	Name string
 	// Value value of env.
 	Value string
+}
+
+func (v ArchExtraValue) Names(showDefault bool) []string {
+	var names []string
+	if !v.IsDefault || showDefault {
+		if v.Name != "" {
+			names = []string{v.Name}
+		} else if v.Value != "" {
+			names = []string{v.Value}
+		}
+	}
+	return names
+}
+func (v ArchExtraValue) NamesExtraFloat(showDefault bool) []string {
+	names := v.Names(showDefault)
+	return append(names, v.ExtraFloat)
 }
 
 const (
@@ -23,9 +42,9 @@ var ExtraArches = map[string][]ArchExtra{
 		{
 			EnvKey: "GOARM",
 			Values: []ArchExtraValue{
-				{Value: "5", ExtraFloat: HardFloat, IsDefault: true},
-				{Value: "6", ExtraFloat: SoftFloat},
-				{Value: "7", ExtraFloat: SoftFloat},
+				{Value: "5", Name: "v5", ExtraFloat: HardFloat, IsDefault: true},
+				{Value: "6", Name: "v6", ExtraFloat: SoftFloat},
+				{Value: "7", Name: "v7", ExtraFloat: SoftFloat},
 			},
 		},
 	},

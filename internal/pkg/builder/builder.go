@@ -95,19 +95,12 @@ type Builder struct {
 	Compress       compress.Make
 }
 
-func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
-	args := make([]string, len(env)+2)
-	args[0], args[1] = GOOS, GOARCH
-	i := 2
-	for _, v := range env {
-		args[i] = strings.Split(v, "=")[1]
-		i++
-	}
+func (a *Builder) Build(GOOS, GOARCH string, nameSuffix, env []string) (string, error) {
 	outputName := a.OutputName
 	if GOOS == "windows" {
 		outputName += ".exe"
 	}
-	buildName := BuildName(outputName, args...)
+	buildName := BuildName(outputName, append([]string{GOOS, GOARCH}, nameSuffix...)...)
 	outputPath := path.Join(a.OutputDir, buildName)
 
 	cmd := a.GoCMD.OutputName(outputPath).Exec()
@@ -126,11 +119,11 @@ func (a *Builder) Build(GOOS, GOARCH string, env ...string) (string, error) {
 	return buildName, nil
 }
 
-func (a *Builder) NewBuildThread(GOOS, GOARCH string, env ...string) {
+func (a *Builder) NewBuildThread(GOOS, GOARCH string, nameSuffix, env []string) {
 	a.WaitGroup.Add(1)
 	go func() {
 		<-a.TreadChan
-		name, err := a.Build(GOOS, GOARCH, env...)
+		name, err := a.Build(GOOS, GOARCH, nameSuffix, env)
 		if err != nil {
 			log.Errorf("error occur while building %s: %v", name, err)
 		} else {
@@ -147,17 +140,30 @@ func (a *Builder) NewBuildThread(GOOS, GOARCH string, env ...string) {
 }
 
 func (a *Builder) BuildArches() error {
-	// 准备编译携程
+	// prepare compile channels and goroutines
 	a.TreadChan = make(chan bool, int(global.Config.Thread))
 	a.WaitGroup = &sync.WaitGroup{}
 	var count int
 	for GOOS, Arches := range a.Arch {
 		for _, GOARCH := range Arches {
-			a.NewBuildThread(GOOS, GOARCH)
-			count++
-			if global.Config.SoftFloat && strings.Contains(GOARCH, "mips") {
-				a.NewBuildThread(GOOS, GOARCH, "GOMIPS=softfloat")
-				count++
+			if global.Config.ExtraArches {
+				extraArches, ok := goCMD.ExtraArches[GOARCH]
+				if !ok {
+					a.NewBuildThread(GOOS, GOARCH, nil, nil)
+					count++
+					continue
+				}
+				for _, extraArch := range extraArches {
+					for _, value := range extraArch.Values {
+						env := fmt.Sprintf("%s=%s", extraArch.EnvKey, value.Value)
+						a.NewBuildThread(GOOS, GOARCH, value.Names(global.Config.ExtraArchesShowDefault), []string{env})
+						count++
+						if value.ExtraFloat != "" {
+							a.NewBuildThread(GOOS, GOARCH, value.NamesExtraFloat(global.Config.ExtraArchesShowDefault), []string{env + "," + value.ExtraFloat})
+							count++
+						}
+					}
+				}
 			}
 		}
 	}
@@ -165,13 +171,13 @@ func (a *Builder) BuildArches() error {
 
 	log.Infof("found %d arches, building...", count)
 
-	// 开始编译
+	// start compile
 	for i := uint16(0); i < global.Config.Thread; i++ {
 		a.TreadChan <- true
 	}
 	a.WaitGroup.Wait()
 
-	// 打印编译结果
+	// print compile result
 	if len(a.FailedArchChan) == 0 {
 		log.Infoln("completed successfully")
 	} else if len(a.FailedArchChan) == count {

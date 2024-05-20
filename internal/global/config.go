@@ -20,17 +20,19 @@ var Config _Config
 var Perm os.FileMode
 
 type _Config struct {
-	Target    string `env:"TARGET,required,notEmpty"`
-	Ldflags   string `env:"LDFLAGS"`
-	SoftFloat bool   `env:"SOFT-FLOAT"`
-	Cgo       bool   `env:"CGO"`
-	OS        string `env:"OS"`
-	Arch      string `env:"ARCH"`
-	Output    string `env:"OUTPUT,notEmpty" envDefault:"build"`
-	Name      string `env:"NAME"`
+	Target  string `env:"TARGET,required,notEmpty"`
+	Ldflags string `env:"LDFLAGS"`
+	Cgo     bool   `env:"CGO"`
+	OS      string `env:"OS"`
+	Arch    string `env:"ARCH"`
+	Output  string `env:"OUTPUT,notEmpty" envDefault:"build"`
+	Name    string `env:"NAME"`
 
-	Compress              string `env:"COMPRESS"`
-	Thread                uint16 `env:"TREAD"`
-	DisableDefaultLdflags bool   `env:"DISABLE-DEFAULT-LDFLAGS"`
-	Perm                  string `env:"PERM,notEmpty" envDefault:"0777"`
+	ExtraArches            bool `env:"EXTRA-ARCHES"`
+	ExtraArchesShowDefault bool `ENV:"EXTRA-ARCHES-SHOW-DEFAULT"`
+	DisableDefaultLdflags  bool `env:"DISABLE-DEFAULT-LDFLAGS"`
+
+	Compress string `env:"COMPRESS"`
+	Thread   uint16 `env:"TREAD"`
+	Perm     string `env:"PERM,notEmpty" envDefault:"0777"`
 }

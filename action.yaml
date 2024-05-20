@@ -11,12 +11,14 @@ inputs:
     description: 'Output dir path'
   arch:
     description: 'Target arch'
+  extra-arches:
+    description: 'Build all extra arches'
+  extra-arches-show-default:
+    description: 'Show default extra arch name'
   os:
     description: 'Target os'
   cgo:
     description: 'Enable go cgo'
-  soft-float:
-    description: 'Enable soft float for mips'
   ldflags:
     description: 'Add custom ldflags'
   disable-default-ldflags:
