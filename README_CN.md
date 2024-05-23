@@ -137,6 +137,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
       - name: Setup Release Cli
         uses: robinraju/release-downloader@v1.10
         with:
