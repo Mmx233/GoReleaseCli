@@ -164,6 +164,8 @@ func (a *Builder) BuildArches() error {
 						}
 					}
 				}
+			} else {
+				tasks.PushBack(a.NewTask(GOOS, GOARCH, nil, nil))
 			}
 		}
 	}
