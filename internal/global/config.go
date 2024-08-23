@@ -20,11 +20,12 @@ var Config _Config
 var Perm os.FileMode
 
 type _Config struct {
-	Target    string `env:"TARGET,required,notEmpty"`
-	Ldflags   string `env:"LDFLAGS"`
-	Cgo       bool   `env:"CGO"`
-	OS        string `env:"OS"`
-	Arch      string `env:"ARCH"`
+	Target  string `env:"TARGET,required,notEmpty"`
+	Ldflags string `env:"LDFLAGS"`
+	Cgo     bool   `env:"CGO"`
+	OS      string `env:"OS"`
+	Arch    string `env:"ARCH"`
+	// If Platforms is set, OS and Arch will not be used.
 	Platforms string `env:"PLATFORMS"`
 	Output    string `env:"OUTPUT,notEmpty" envDefault:"build"`
 	Name      string `env:"NAME"`

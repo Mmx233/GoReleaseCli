@@ -74,7 +74,7 @@ func NewBuilder(outputDir string) (*Builder, error) {
 		builder.Cgo = "CGO_ENABLED=0"
 	}
 
-	if err = PrepareDirs(outputDir); err != nil {
+	if err := PrepareDirs(outputDir); err != nil {
 		return nil, err
 	}
 
