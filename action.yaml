@@ -19,6 +19,8 @@ inputs:
     description: 'Target os'
   cgo:
     description: 'Enable go cgo'
+  platforms:
+    description: 'Specify platforms'
   ldflags:
     description: 'Add custom ldflags'
   disable-default-ldflags:
@@ -27,7 +29,8 @@ inputs:
     description: 'How many threads to use for parallel compilation'
   compress:
     description: 'Compress the binary into the specified format of compressed file'
-
+  mod-download-args:
+    description: 'Custom args for go mod download'
 runs:
   using: 'docker'
   image: 'Dockerfile'
