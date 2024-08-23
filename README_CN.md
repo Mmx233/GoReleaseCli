@@ -13,24 +13,27 @@ usage: release [<flags>] <target>
 Golang build production release helper.
 
 Flags:
-  -h, --[no-]help          Show context-sensitive help (also try --help-long and
-                           --help-man).
-  -v, --[no-]version       Show application version.
-  -j, --thread=(NumCpu+1)  How many threads to use for parallel compilation.
-  -c, --compress=COMPRESS  Compress the binary into the specified format of
-                           compressed file.
+  -h, --[no-]help            Show context-sensitive help (also try --help-long
+                             and --help-man).
+  -v, --[no-]version         Show application version.
+  -j, --thread=(NumCpu+1)    How many threads to use for parallel compilation.
+  -c, --compress=COMPRESS    Compress the binary into the specified format of
+                             compressed file.
       --[no-]disable-default-ldflags
-                           Disable ldflags added by default.
-      --ldflags=LDFLAGS    Add custom ldflags.
-      --[no-]soft-float    Enable soft float for mips.
-      --[no-]cgo           Enable go cgo.
-      --os=OS              Target os
-      --arch=ARCH          Target arch.
-      --[no-]extra-arches  Build all extra arches.
+                             Disable ldflags added by default.
+      --perm="0600"          Output file mode.
+      --mod-download-args=MOD-DOWNLOAD-ARGS
+                             custom args for go mod download.
+      --ldflags=LDFLAGS      Add custom ldflags.
+      --[no-]cgo             Enable go cgo.
+      --os=OS                Target os.
+      --arch=ARCH            Target arch.
+      --platforms=PLATFORMS  Specify platforms
+      --[no-]extra-arches    Build all extra arches.
       --[no-]extra-arches-show-default
-                           Show default extra arch name.
-  -d, --output="build"     Output dir path.
-  -o, --name=NAME          Output binary file name.
+                             Show default extra arch name.
+  -d, --output="build"       Output dir path.
+  -o, --name=NAME            Output binary file name.
 
 Args:
   <target>  Target package.
@@ -46,6 +49,15 @@ CGO、软浮点、生成压缩文件默认关闭
 ~$ release ./cmd/release
 ~$ release ./cmd/release --os linux,windows
 ~$ release ./cmd/release --arch amd64,386
+```
+
+如果你想跳过内置的架构列表手动指定架构，你可以使用 flag `--platforms`。此 flag 添加的架构不会经过有效性校验
+
+```shell
+~$ release ./cmd/release --platforms linux/386,windows/amd64
+
+# 也可以结合两种方法
+~$ release ./cmd/release --os linux --arch 386 --platforms windows/amd64 
 ```
 
 编译时默认已带有 `-extldflags "-static -fpic" -s -w` 以及 `-trimpath` 的 ldflags，如果需要附加自定义 ldflags，可以用 flag 继续加

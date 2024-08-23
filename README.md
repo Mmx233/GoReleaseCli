@@ -13,23 +13,27 @@ usage: release [<flags>] <target>
 Golang build production release helper.
 
 Flags:
-  -h, --[no-]help          Show context-sensitive help (also try --help-long and
-                           --help-man).
-  -v, --[no-]version       Show application version.
-  -j, --thread=(NumCpu+1)  How many threads to use for parallel compilation.
-  -c, --compress=COMPRESS  Compress the binary into the specified format of
-                           compressed file.
+  -h, --[no-]help            Show context-sensitive help (also try --help-long
+                             and --help-man).
+  -v, --[no-]version         Show application version.
+  -j, --thread=(NumCpu+1)    How many threads to use for parallel compilation.
+  -c, --compress=COMPRESS    Compress the binary into the specified format of
+                             compressed file.
       --[no-]disable-default-ldflags
-                           Disable ldflags added by default.
-      --ldflags=LDFLAGS    Add custom ldflags.
-      --[no-]cgo           Enable go cgo.
-      --os=OS              Target os
-      --arch=ARCH          Target arch.
-      --[no-]extra-arches  Build all extra arches.
+                             Disable ldflags added by default.
+      --perm="0600"          Output file mode.
+      --mod-download-args=MOD-DOWNLOAD-ARGS
+                             custom args for go mod download.
+      --ldflags=LDFLAGS      Add custom ldflags.
+      --[no-]cgo             Enable go cgo.
+      --os=OS                Target os.
+      --arch=ARCH            Target arch.
+      --platforms=PLATFORMS  Specify platforms
+      --[no-]extra-arches    Build all extra arches.
       --[no-]extra-arches-show-default
-                           Show default extra arch name.
-  -d, --output="build"     Output dir path.
-  -o, --name=NAME          Output binary file name.
+                             Show default extra arch name.
+  -d, --output="build"       Output dir path.
+  -o, --name=NAME            Output binary file name.
 
 Args:
   <target>  Target package.
@@ -39,12 +43,21 @@ Args:
 
 CGO, soft-float, compression is disabled by default.
 
-By default, compile for all architecture types. You can use the flags `--os` and `--arch` to specify the operating system or architecture, separated by commas. The program will automatically match valid architectures for compilation.
+By default, this program will compile for all architecture types. You can use the flags `--os` and `--arch` to specify the operating system or architecture, separated by commas. The program will automatically match valid architectures for compilation.
 
 ```shell
 ~$ release ./cmd/release
 ~$ release ./cmd/release --os linux,windows
 ~$ release ./cmd/release --arch amd64,386
+```
+
+If you want to ignore embeded architectures and specify platforms by hand, you can use `--platforms` to achieve this goal. Platforms specified by this flag will not be checked.
+
+```shell
+~$ release ./cmd/release --platforms linux/386,windows/amd64
+
+# You can also combine these two methods
+~$ release ./cmd/release --os linux --arch 386 --platforms windows/amd64 
 ```
 
 During compilation, default ldflags include `-extldflags "-static -fpic" -s -w` as well as `-trimpath`. If additional custom ldflags are needed, you can use an additional flag to append them.
