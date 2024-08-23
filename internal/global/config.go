@@ -30,7 +30,7 @@ type _Config struct {
 	Output    string `env:"OUTPUT,notEmpty" envDefault:"build"`
 	Name      string `env:"NAME"`
 
-	ModDownloadArgs string `env:"MOD_DOWNLOAD_ARGS"`
+	ModDownloadArgs string `env:"MOD-DOWNLOAD-ARGS"`
 
 	ExtraArches            bool `env:"EXTRA-ARCHES"`
 	ExtraArchesShowDefault bool `ENV:"EXTRA-ARCHES-SHOW-DEFAULT"`
