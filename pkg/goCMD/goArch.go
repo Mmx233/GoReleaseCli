@@ -1,6 +1,6 @@
 package goCMD
 
-var Arch = map[string][]string{
+var Platforms = map[string][]string{
 	"aix":       {"ppc64"},
 	"android":   {"386", "amd64", "arm", "arm64"},
 	"darwin":    {"amd64", "arm64"},

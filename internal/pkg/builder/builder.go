@@ -25,7 +25,7 @@ func NewBuilder(outputDir string) (*Builder, error) {
 		goBuilder = goBuilder.Ldflags(global.Config.Ldflags)
 	}
 
-	arch, err := MatchTargetArch()
+	platforms, err := MatchTargetPlatforms()
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func NewBuilder(outputDir string) (*Builder, error) {
 	builder := &Builder{
 		OutputName: outputName,
 		OutputDir:  outputDir,
-		Arch:       arch,
+		Platforms:  platforms,
 		GoCMD:      goBuilder,
 	}
 
@@ -90,7 +90,7 @@ type Builder struct {
 	OutputName string
 	OutputDir  string
 	Cgo        string
-	Arch       map[string][]string
+	Platforms  map[string][]string
 	GoCMD      goCMD.BuildCommand
 
 	WaitGroup      *sync.WaitGroup
@@ -161,7 +161,7 @@ func (a *Builder) BuildArches() error {
 	// match all build tasks
 	var tasks = list.New()
 	a.TaskChan = make(chan *Task)
-	for GOOS, Arches := range a.Arch {
+	for GOOS, Arches := range a.Platforms {
 		for _, GOARCH := range Arches {
 			if global.Config.ExtraArches {
 				extraArches, ok := goCMD.ExtraArches[GOARCH]

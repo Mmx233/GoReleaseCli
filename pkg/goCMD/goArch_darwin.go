@@ -1,5 +1,5 @@
 package goCMD
 
 func init() {
-	Arch["ios"] = []string{"amd64", "arm64"}
+	Platforms["ios"] = []string{"amd64", "arm64"}
 }

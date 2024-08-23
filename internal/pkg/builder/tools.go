@@ -35,9 +35,9 @@ func BuildName(binaryName string, suffix ...string) string {
 	return name
 }
 
-// MatchTargetArch can only be executed once because permanent modify of global arch map
-func MatchTargetArch() (map[string][]string, error) {
-	var arch map[string][]string
+// MatchTargetPlatforms can only be executed once because permanent modify of global arch map
+func MatchTargetPlatforms() (map[string][]string, error) {
+	var targetPlatforms map[string][]string
 
 	if global.Config.Platforms == "" || global.Config.OS != "" || global.Config.Arch != "" {
 		var targetOS []string
@@ -49,18 +49,18 @@ func MatchTargetArch() (map[string][]string, error) {
 			targetArch = strings.Split(global.Config.Arch, ",")
 		}
 
-		arch = make(map[string][]string, len(targetOS))
+		targetPlatforms = make(map[string][]string, len(targetOS))
 
 		// match GOOS
 		if len(targetOS) == 0 {
-			arch = goCMD.Arch
+			targetPlatforms = goCMD.Platforms
 		} else {
 			for _, GOOS := range targetOS {
-				if GOARCH, ok := goCMD.Arch[GOOS]; ok {
-					arch[GOOS] = GOARCH
+				if GOARCH, ok := goCMD.Platforms[GOOS]; ok {
+					targetPlatforms[GOOS] = GOARCH
 				}
 			}
-			if len(arch) == 0 {
+			if len(targetPlatforms) == 0 {
 				return nil, errors.New("no valid os found")
 			}
 		}
@@ -68,11 +68,11 @@ func MatchTargetArch() (map[string][]string, error) {
 		// match GOARCH
 		var keepArch = make(map[string]int, len(targetOS))
 		if len(targetArch) != 0 {
-			for GOOS, Arches := range arch {
+			for GOOS, Arches := range targetPlatforms {
 				archCounter := 0
 				for i, GOARCH := range Arches {
-					for _, ArchEX := range targetArch {
-						if GOARCH == ArchEX {
+					for _, GOARCHExist := range targetArch {
+						if GOARCH == GOARCHExist {
 							archCounter++
 							goto nextArch
 						}
@@ -84,27 +84,27 @@ func MatchTargetArch() (map[string][]string, error) {
 			}
 			for GOOS, count := range keepArch {
 				if count == 0 {
-					delete(arch, GOOS)
+					delete(targetPlatforms, GOOS)
 					continue
 				}
 
-				newARCH := make([]string, count)
+				newArches := make([]string, count)
 				i := 0
-				for _, Arch := range arch[GOOS] {
+				for _, Arch := range targetPlatforms[GOOS] {
 					if Arch != "" {
-						newARCH[i] = Arch
+						newArches[i] = Arch
 						i++
 					}
 				}
-				arch[GOOS] = newARCH
+				targetPlatforms[GOOS] = newArches
 			}
 		}
 	}
 
 	// add platforms
 	if global.Config.Platforms != "" {
-		if arch == nil {
-			arch = make(map[string][]string)
+		if targetPlatforms == nil {
+			targetPlatforms = make(map[string][]string)
 		}
 		platforms := strings.Split(global.Config.Platforms, ",")
 		for _, platform := range platforms {
@@ -113,20 +113,20 @@ func MatchTargetArch() (map[string][]string, error) {
 				return nil, fmt.Errorf("invalid platform: %s", platform)
 			}
 			platformGOOS, platformGOARCH := splitPlatform[0], splitPlatform[1]
-			Arches, _ := arch[platformGOOS]
+			Arches, _ := targetPlatforms[platformGOOS]
 			for _, GOARCH := range Arches {
 				if GOARCH == platformGOARCH {
 					goto nextPlatform
 				}
 			}
-			arch[platformGOOS] = append(Arches, platformGOARCH)
+			targetPlatforms[platformGOOS] = append(Arches, platformGOARCH)
 		nextPlatform:
 		}
 	}
 
-	if len(arch) == 0 {
-		return nil, errors.New("no valid arch found")
+	if len(targetPlatforms) == 0 {
+		return nil, errors.New("no valid platform found")
 	}
 
-	return arch, nil
+	return targetPlatforms, nil
 }
