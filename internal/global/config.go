@@ -20,13 +20,14 @@ var Config _Config
 var Perm os.FileMode
 
 type _Config struct {
-	Target  string `env:"TARGET,required,notEmpty"`
-	Ldflags string `env:"LDFLAGS"`
-	Cgo     bool   `env:"CGO"`
-	OS      string `env:"OS"`
-	Arch    string `env:"ARCH"`
-	Output  string `env:"OUTPUT,notEmpty" envDefault:"build"`
-	Name    string `env:"NAME"`
+	Target    string `env:"TARGET,required,notEmpty"`
+	Ldflags   string `env:"LDFLAGS"`
+	Cgo       bool   `env:"CGO"`
+	OS        string `env:"OS"`
+	Arch      string `env:"ARCH"`
+	Platforms string `env:"PLATFORMS"`
+	Output    string `env:"OUTPUT,notEmpty" envDefault:"build"`
+	Name      string `env:"NAME"`
 
 	ModDownloadArgs string `env:"MOD_DOWNLOAD_ARGS"`
 

@@ -143,6 +143,20 @@ func (a *Builder) BuildThread() {
 	}
 }
 
+func (a *Builder) CalcExtraArches(GOOS, GOARCH string, extraArches []goCMD.ArchExtra) *list.List {
+	tasks := list.New()
+	for _, extraArch := range extraArches {
+		for _, value := range extraArch.Values {
+			env := fmt.Sprintf("%s=%s", extraArch.EnvKey, value.Value)
+			tasks.PushBack(a.NewTask(GOOS, GOARCH, value.Names(global.Config.ExtraArchesShowDefault), []string{env}))
+			if value.ExtraFloat != "" {
+				tasks.PushBack(a.NewTask(GOOS, GOARCH, value.NamesExtraFloat(global.Config.ExtraArchesShowDefault), []string{env + "," + value.ExtraFloat}))
+			}
+		}
+	}
+	return tasks
+}
+
 func (a *Builder) BuildArches() error {
 	// match all build tasks
 	var tasks = list.New()
@@ -155,15 +169,7 @@ func (a *Builder) BuildArches() error {
 					tasks.PushBack(a.NewTask(GOOS, GOARCH, nil, nil))
 					continue
 				}
-				for _, extraArch := range extraArches {
-					for _, value := range extraArch.Values {
-						env := fmt.Sprintf("%s=%s", extraArch.EnvKey, value.Value)
-						tasks.PushBack(a.NewTask(GOOS, GOARCH, value.Names(global.Config.ExtraArchesShowDefault), []string{env}))
-						if value.ExtraFloat != "" {
-							tasks.PushBack(a.NewTask(GOOS, GOARCH, value.NamesExtraFloat(global.Config.ExtraArchesShowDefault), []string{env + "," + value.ExtraFloat}))
-						}
-					}
-				}
+				tasks.PushBackList(a.CalcExtraArches(GOOS, GOARCH, extraArches))
 			} else {
 				tasks.PushBack(a.NewTask(GOOS, GOARCH, nil, nil))
 			}
