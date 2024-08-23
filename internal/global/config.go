@@ -28,6 +28,8 @@ type _Config struct {
 	Output  string `env:"OUTPUT,notEmpty" envDefault:"build"`
 	Name    string `env:"NAME"`
 
+	ModDownloadArgs string `env:"MOD_DOWNLOAD_ARGS"`
+
 	ExtraArches            bool `env:"EXTRA-ARCHES"`
 	ExtraArchesShowDefault bool `ENV:"EXTRA-ARCHES-SHOW-DEFAULT"`
 	DisableDefaultLdflags  bool `env:"DISABLE-DEFAULT-LDFLAGS"`
