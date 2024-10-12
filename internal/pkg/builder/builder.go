@@ -99,17 +99,17 @@ type Builder struct {
 	Compress       compress.Make
 }
 
-func (a *Builder) NewTask(GOOS, GOARCH string, nameSuffix, env []string) *Task {
-	outputName := a.OutputName
+func (b *Builder) NewTask(GOOS, GOARCH string, nameSuffix, env []string) *Task {
+	outputName := b.OutputName
 	if GOOS == "windows" {
 		outputName += ".exe"
 	}
 	buildName := BuildName(outputName, append([]string{GOOS, GOARCH}, nameSuffix...)...)
-	outputPath := path.Join(a.OutputDir, buildName)
+	outputPath := path.Join(b.OutputDir, buildName)
 
-	cmd := a.GoCMD.OutputName(outputPath).Exec()
+	cmd := b.GoCMD.OutputName(outputPath).Exec()
 	cmd.Env = append(cmd.Environ(), env...)
-	cmd.Env = append(cmd.Env, a.Cgo, "GOOS="+GOOS, "GOARCH="+GOARCH)
+	cmd.Env = append(cmd.Env, b.Cgo, "GOOS="+GOOS, "GOARCH="+GOARCH)
 	cmd.Stderr = os.Stderr
 
 	return &Task{
@@ -119,7 +119,7 @@ func (a *Builder) NewTask(GOOS, GOARCH string, nameSuffix, env []string) *Task {
 			if err != nil {
 				return fmt.Errorf("build error: %v", err)
 			}
-			if err = a.Compress(outputPath, a.OutputName); err != nil {
+			if err = b.Compress(outputPath, b.OutputName); err != nil {
 				return fmt.Errorf("compress %s failed: %v", outputPath, err)
 			}
 			return nil
@@ -127,51 +127,54 @@ func (a *Builder) NewTask(GOOS, GOARCH string, nameSuffix, env []string) *Task {
 	}
 }
 
-func (a *Builder) BuildThread() {
+func (b *Builder) BuildThread(stat *BuildStat) {
 	for {
-		task, ok := <-a.TaskChan
+		task, ok := <-b.TaskChan
 		if !ok {
-			a.WaitGroup.Done()
+			b.WaitGroup.Done()
 			return
 		}
-		if err := task.Build(); err != nil {
-			log.Errorf("error occur while building %s: %v", task.Name, err)
-			a.FailedTaskChan <- task.Name
+		err := task.Build()
+		stat.Done()
+		logger := log.WithField("process", fmt.Sprintf("%.1f", stat.Percentage()))
+		if err != nil {
+			logger.Errorf("error occur while building %s: %v", task.Name, err)
+			b.FailedTaskChan <- task.Name
 		} else {
-			log.Infof("build %s success", task.Name)
+			logger.Infof("build %s success", task.Name)
 		}
 	}
 }
 
-func (a *Builder) CalcExtraArches(GOOS, GOARCH string, extraArches []goCMD.ArchExtra) *list.List {
+func (b *Builder) CalcExtraArches(GOOS, GOARCH string, extraArches []goCMD.ArchExtra) *list.List {
 	tasks := list.New()
 	for _, extraArch := range extraArches {
 		for _, value := range extraArch.Values {
 			env := fmt.Sprintf("%s=%s", extraArch.EnvKey, value.Value)
-			tasks.PushBack(a.NewTask(GOOS, GOARCH, value.Names(global.Config.ExtraArchesShowDefault), []string{env}))
+			tasks.PushBack(b.NewTask(GOOS, GOARCH, value.Names(global.Config.ExtraArchesShowDefault), []string{env}))
 			if value.ExtraFloat != "" {
-				tasks.PushBack(a.NewTask(GOOS, GOARCH, value.NamesExtraFloat(global.Config.ExtraArchesShowDefault), []string{env + "," + value.ExtraFloat}))
+				tasks.PushBack(b.NewTask(GOOS, GOARCH, value.NamesExtraFloat(global.Config.ExtraArchesShowDefault), []string{env + "," + value.ExtraFloat}))
 			}
 		}
 	}
 	return tasks
 }
 
-func (a *Builder) BuildArches() error {
+func (b *Builder) BuildArches() error {
 	// match all build tasks
 	var tasks = list.New()
-	a.TaskChan = make(chan *Task)
-	for GOOS, Arches := range a.Platforms {
+	b.TaskChan = make(chan *Task)
+	for GOOS, Arches := range b.Platforms {
 		for _, GOARCH := range Arches {
 			if global.Config.ExtraArches {
 				extraArches, ok := goCMD.ExtraArches[GOARCH]
 				if !ok {
-					tasks.PushBack(a.NewTask(GOOS, GOARCH, nil, nil))
+					tasks.PushBack(b.NewTask(GOOS, GOARCH, nil, nil))
 					continue
 				}
-				tasks.PushBackList(a.CalcExtraArches(GOOS, GOARCH, extraArches))
+				tasks.PushBackList(b.CalcExtraArches(GOOS, GOARCH, extraArches))
 			} else {
-				tasks.PushBack(a.NewTask(GOOS, GOARCH, nil, nil))
+				tasks.PushBack(b.NewTask(GOOS, GOARCH, nil, nil))
 			}
 		}
 	}
@@ -182,34 +185,37 @@ func (a *Builder) BuildArches() error {
 	log.Infof("found %d arches, building...", tasks.Len())
 
 	// prepare channels and goroutines
-	a.FailedTaskChan = make(chan string, tasks.Len())
+	b.FailedTaskChan = make(chan string, tasks.Len())
 	thread := int(global.Config.Thread)
 	if tasks.Len() < thread {
 		thread = tasks.Len()
 	}
-	a.WaitGroup = &sync.WaitGroup{}
-	a.WaitGroup.Add(thread)
+	b.WaitGroup = &sync.WaitGroup{}
+	b.WaitGroup.Add(thread)
+	stat := &BuildStat{
+		Num: uint32(tasks.Len()),
+	}
 	for range thread {
-		go a.BuildThread()
+		go b.BuildThread(stat)
 	}
 
 	// start compile
 	for el := tasks.Front(); el != nil; el = el.Next() {
-		a.TaskChan <- el.Value.(*Task)
+		b.TaskChan <- el.Value.(*Task)
 	}
-	close(a.TaskChan)
-	a.WaitGroup.Wait()
+	close(b.TaskChan)
+	b.WaitGroup.Wait()
 
 	// print compile result
-	if len(a.FailedTaskChan) == 0 {
+	if len(b.FailedTaskChan) == 0 {
 		log.Infoln("completed successfully")
-	} else if len(a.FailedTaskChan) == tasks.Len() {
+	} else if len(b.FailedTaskChan) == tasks.Len() {
 		return errors.New("all arches build failed")
 	} else {
-		log.Infof("completed: %d arches succeed, %d arches failed", tasks.Len()-len(a.FailedTaskChan), len(a.FailedTaskChan))
-		failedArches := make([]string, len(a.FailedTaskChan))
-		for i := len(a.FailedTaskChan) - 1; i >= 0; i-- {
-			failedArches[i] = <-a.FailedTaskChan
+		log.Infof("completed: %d arches succeed, %d arches failed", tasks.Len()-len(b.FailedTaskChan), len(b.FailedTaskChan))
+		failedArches := make([]string, len(b.FailedTaskChan))
+		for i := len(b.FailedTaskChan) - 1; i >= 0; i-- {
+			failedArches[i] = <-b.FailedTaskChan
 		}
 		log.Infof("failed arches: %s", strings.Join(failedArches, ", "))
 	}
