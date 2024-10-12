@@ -20,7 +20,17 @@ func (s *BuildStat) Done() {
 }
 
 func (s *BuildStat) Percentage() float32 {
-	return float32(s.Current.Load()) / float32(s.Num)
+	return 100 * float32(s.Current.Load()) / float32(s.Num)
+}
+
+func (s *BuildStat) PercentageString() string {
+	percent := s.Percentage()
+	if percent == 100 {
+		return "100.%"
+	}
+	percentInt := uint8(percent)
+	percentDec := uint8((percent - float32(percentInt)) * 10)
+	return fmt.Sprintf("%02d.%01d%%", percentInt, percentDec)
 }
 
 func (s *BuildStat) String() string {

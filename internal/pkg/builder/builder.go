@@ -136,7 +136,7 @@ func (b *Builder) BuildThread(stat *BuildStat) {
 		}
 		err := task.Build()
 		stat.Done()
-		logger := log.WithField("process", fmt.Sprintf("%.1f", stat.Percentage()))
+		logger := log.WithField("process", stat.PercentageString())
 		if err != nil {
 			logger.Errorf("error occur while building %s: %v", task.Name, err)
 			b.FailedTaskChan <- task.Name
