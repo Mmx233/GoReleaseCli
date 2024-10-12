@@ -12,7 +12,7 @@ import (
 
 func PrepareDirs(outputDir string) error {
 	_ = os.RemoveAll(outputDir)
-	return os.MkdirAll(outputDir, global.Perm)
+	return os.MkdirAll(outputDir, 0775)
 }
 
 func LoadBinaryName() string {

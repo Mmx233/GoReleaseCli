@@ -15,7 +15,6 @@ func NewCommands(version string) *kingpin.Application {
 	app.Flag("thread", "How many threads to use for parallel compilation.").Short('j').Default(fmt.Sprint(runtime.NumCPU() + 1)).Uint16Var(&Config.Thread)
 	app.Flag("compress", "Compress the binary into the specified format of compressed file.").Short('c').HintOptions("zip", "tar.gz").StringVar(&Config.Compress)
 	app.Flag("disable-default-ldflags", "Disable ldflags added by default.").BoolVar(&Config.DisableDefaultLdflags)
-	app.Flag("perm", "Output file mode.").Default("0600").StringVar(&Config.Perm)
 
 	app.Flag("mod-download-args", "custom args for go mod download.").HintOptions("-x").StringVar(&Config.ModDownloadArgs)
 

@@ -21,7 +21,7 @@ Flags:
                              compressed file.
       --[no-]disable-default-ldflags
                              Disable ldflags added by default.
-      --perm="0600"          Output file mode.
+      --perm="0775"          Output file mode.
       --mod-download-args=MOD-DOWNLOAD-ARGS
                              custom args for go mod download.
       --ldflags=LDFLAGS      Add custom ldflags.
