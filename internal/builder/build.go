@@ -8,7 +8,7 @@ import (
 )
 
 func Run(ctx context.Context) {
-	if err := DownloadGoMod(); err != nil {
+	if err := DownloadGoMod(ctx); err != nil {
 		log.Fatalln("download go mod failed:", err)
 	}
 	builder, err := NewBuilder(global.Config.Output)
