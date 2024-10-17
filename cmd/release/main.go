@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/Mmx233/GoReleaseCli/internal/builder"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
-	"github.com/Mmx233/GoReleaseCli/internal/pkg/builder"
 	"github.com/alecthomas/kingpin/v2"
 	"os"
 )
