@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"context"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	log "github.com/sirupsen/logrus"
 )
@@ -13,7 +14,7 @@ func Run() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if err = builder.BuildArches(); err != nil {
+	if err = builder.BuildArches(context.TODO()); err != nil {
 		log.Fatalln(err)
 	}
 }
