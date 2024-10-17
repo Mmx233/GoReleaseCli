@@ -33,6 +33,7 @@ Flags:
                              Show default extra arch name.
   -d, --output="build"       Output dir path.
   -o, --name=NAME            Output binary file name.
+      --divider="-"          Divider in name.
 
 Args:
   <target>  Target package.
