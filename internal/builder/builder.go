@@ -154,6 +154,9 @@ func (b *Builder) BuildThread() {
 		}
 		for el := tasks.Front(); el != nil; el = el.Next() {
 			task := el.Value.(*Task)
+			if task.ctx.Err() != nil {
+				continue
+			}
 			err := task.Build()
 			logger := log.WithField("process", task.Stat.PercentageString())
 			if err != nil {
@@ -265,7 +268,7 @@ func (b *Builder) BuildArches(ctx context.Context) error {
 		for i := len(b.FailedTaskChan) - 1; i >= 0; i-- {
 			failedArches[i] = <-b.FailedTaskChan
 		}
-		log.Infof("failed arches: %s", strings.Join(failedArches, ", "))
+		log.Warnf("failed arches: %s", strings.Join(failedArches, ", "))
 	}
 	return nil
 }
