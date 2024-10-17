@@ -171,21 +171,21 @@ func (b *Builder) CalcExtraArches(ctx ArchContext, GOOS, GOARCH string, extraArc
 	for _, extraArch := range extraArches {
 		for _, value := range extraArch.Values {
 			env := fmt.Sprintf("%s=%s", extraArch.EnvKey, value.Value)
-			tasks.PushBack(TaskContext{
+			tasks.PushBack(b.NewTask(TaskContext{
 				ArchContext: ctx,
 				GOOS:        GOOS,
 				GOARCH:      GOARCH,
 				NameSuffix:  value.Names(global.Config.ExtraArchesShowDefault),
 				Env:         []string{env},
-			})
+			}))
 			if value.ExtraFloat != "" {
-				tasks.PushBack(TaskContext{
+				tasks.PushBack(b.NewTask(TaskContext{
 					ArchContext: ctx,
 					GOOS:        GOOS,
 					GOARCH:      GOARCH,
 					NameSuffix:  value.NamesExtraFloat(global.Config.ExtraArchesShowDefault),
 					Env:         []string{env + "," + value.ExtraFloat},
-				})
+				}))
 			}
 		}
 	}

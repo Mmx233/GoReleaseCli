@@ -11,5 +11,4 @@ type TaskContext struct {
 	ArchContext
 	GOOS, GOARCH    string
 	NameSuffix, Env []string
-	Stat            *BuildStat
 }
