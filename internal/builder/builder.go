@@ -128,7 +128,7 @@ func (b *Builder) NewTask(ctx TaskContext) *Task {
 	buildName := BuildName(outputName, append([]string{ctx.GOOS, ctx.GOARCH}, ctx.NameSuffix...)...)
 	outputPath := path.Join(b.OutputDir, buildName)
 
-	cmd := b.GoCMD.OutputName(outputPath).Exec()
+	cmd := b.GoCMD.OutputName(outputPath).ExecContext(ctx)
 	cmd.Env = append(cmd.Environ(), ctx.Env...)
 	cmd.Env = append(cmd.Env, b.Cgo, "GOOS="+ctx.GOOS, "GOARCH="+ctx.GOARCH)
 	cmd.Stdout = os.Stdout
@@ -239,12 +239,20 @@ func (b *Builder) BuildArches(ctx context.Context) error {
 
 	// start compile
 	for el := taskTree.Front(); el != nil; el = el.Next() {
-		b.TaskChan <- el.Value.(*list.List)
+		select {
+		case <-ctx.Done():
+			break
+		case b.TaskChan <- el.Value.(*list.List):
+		}
 	}
 	close(b.TaskChan)
 	b.WaitGroup.Wait()
 
 	// print compile result
+	if ctx.Err() != nil {
+		log.Errorln("build process interrupted")
+		return ctx.Err()
+	}
 	if len(b.FailedTaskChan) == 0 {
 		log.Infoln("completed successfully")
 	} else if len(b.FailedTaskChan) == taskCount {

@@ -1,6 +1,7 @@
 package goCMD
 
 import (
+	"context"
 	"os/exec"
 	"strings"
 )
@@ -18,11 +19,19 @@ type BuildCommand struct {
 	ldflags []string
 }
 
-func (c BuildCommand) Exec() *exec.Cmd {
+func (c BuildCommand) _ExecArgs() []string {
 	if len(c.ldflags) != 0 {
 		c.args = append(c.args, "-ldflags", strings.Join(c.ldflags, " "))
 	}
-	return exec.Command("go", append(c.args, c.target)...)
+	return append(c.args, c.target)
+}
+
+func (c BuildCommand) Exec() *exec.Cmd {
+	return exec.Command("go", c._ExecArgs()...)
+}
+
+func (c BuildCommand) ExecContext(ctx context.Context) *exec.Cmd {
+	return exec.CommandContext(ctx, "go", c._ExecArgs()...)
 }
 
 func (c BuildCommand) Run() ([]byte, error) {

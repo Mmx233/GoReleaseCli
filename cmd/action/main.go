@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/Mmx233/GoReleaseCli/internal/builder"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	log "github.com/sirupsen/logrus"
@@ -13,5 +14,5 @@ func init() {
 }
 
 func main() {
-	builder.Run()
+	builder.Run(context.TODO())
 }
