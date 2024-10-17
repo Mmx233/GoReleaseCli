@@ -91,7 +91,7 @@ type Builder struct {
 	GoCMD      goCMD.BuildCommand
 
 	WaitGroup      *sync.WaitGroup
-	TaskChan       chan *list.List
+	TaskChan       chan *Task
 	FailedTaskChan chan string
 	Compress       compress.Make
 }
@@ -147,24 +147,21 @@ func (b *Builder) NewTask(ctx TaskContext) *Task {
 
 func (b *Builder) BuildThread() {
 	for {
-		tasks, ok := <-b.TaskChan
+		task, ok := <-b.TaskChan
 		if !ok {
 			b.WaitGroup.Done()
 			return
 		}
-		for el := tasks.Front(); el != nil; el = el.Next() {
-			task := el.Value.(*Task)
-			if task.ctx.Err() != nil {
-				continue
-			}
-			err := task.Build()
-			logger := log.WithField("process", task.Stat.PercentageString())
-			if err != nil {
-				logger.Errorf("error occur while building %s: %v", task.Name, err)
-				b.FailedTaskChan <- task.Name
-			} else {
-				logger.Infof("build %s success", task.Name)
-			}
+		if task.ctx.Err() != nil {
+			continue
+		}
+		err := task.Build()
+		logger := log.WithField("process", task.Stat.PercentageString())
+		if err != nil {
+			logger.Errorf("error occur while building %s: %v", task.Name, err)
+			b.FailedTaskChan <- task.Name
+		} else {
+			logger.Infof("build %s success", task.Name)
 		}
 	}
 }
@@ -197,43 +194,39 @@ func (b *Builder) CalcExtraArches(ctx ArchContext, GOOS, GOARCH string, extraArc
 
 func (b *Builder) BuildArches(ctx context.Context) error {
 	// match all build tasks
-	b.TaskChan = make(chan *list.List)
-	taskTree, taskCount := list.New(), 0
+	b.TaskChan = make(chan *Task)
+	tasks := list.New()
 	archCtx := ArchContext{
 		Context: ctx,
 		Stat:    &BuildStat{},
 	}
 	for GOOS, Arches := range b.Platforms {
 		for _, GOARCH := range Arches {
-			tasks := list.New()
 			extraArches, ok := goCMD.ExtraArches[GOARCH]
 			if global.Config.ExtraArches && ok {
 				extraArchList := b.CalcExtraArches(archCtx, GOOS, GOARCH, extraArches)
 				tasks.PushBackList(extraArchList)
-				taskCount += extraArchList.Len()
 			} else {
 				tasks.PushBack(b.NewTask(TaskContext{
 					ArchContext: archCtx,
 					GOOS:        GOOS,
 					GOARCH:      GOARCH,
 				}))
-				taskCount++
 			}
-			taskTree.PushBack(tasks)
 		}
 	}
-	if taskTree.Len() == 0 {
+	if tasks.Len() == 0 {
 		return fmt.Errorf("no valid arch found")
 	}
-	archCtx.Stat.SetNum(uint32(taskCount))
+	archCtx.Stat.SetNum(uint32(tasks.Len()))
 
-	log.Infof("found %d arches, building...", taskCount)
+	log.Infof("found %d arches, building...", tasks.Len())
 
 	// prepare channels and goroutines
-	b.FailedTaskChan = make(chan string, taskCount)
+	b.FailedTaskChan = make(chan string, tasks.Len())
 	thread := int(global.Config.Thread)
-	if taskTree.Len() < thread {
-		thread = taskTree.Len()
+	if tasks.Len() < thread {
+		thread = tasks.Len()
 		log.Debugf("scale down build thread to %d", thread)
 	}
 	b.WaitGroup = &sync.WaitGroup{}
@@ -243,11 +236,11 @@ func (b *Builder) BuildArches(ctx context.Context) error {
 	}
 
 	// start compile
-	for el := taskTree.Front(); el != nil; el = el.Next() {
+	for el := tasks.Front(); el != nil; el = el.Next() {
 		select {
 		case <-ctx.Done():
 			break
-		case b.TaskChan <- el.Value.(*list.List):
+		case b.TaskChan <- el.Value.(*Task):
 		}
 	}
 	close(b.TaskChan)
@@ -260,10 +253,10 @@ func (b *Builder) BuildArches(ctx context.Context) error {
 	}
 	if len(b.FailedTaskChan) == 0 {
 		log.Infoln("completed successfully")
-	} else if len(b.FailedTaskChan) == taskCount {
+	} else if len(b.FailedTaskChan) == tasks.Len() {
 		return errors.New("all arches build failed")
 	} else {
-		log.Infof("completed: %d arches succeed, %d arches failed", taskCount-len(b.FailedTaskChan), len(b.FailedTaskChan))
+		log.Infof("completed: %d arches succeed, %d arches failed", tasks.Len()-len(b.FailedTaskChan), len(b.FailedTaskChan))
 		failedArches := make([]string, len(b.FailedTaskChan))
 		for i := len(b.FailedTaskChan) - 1; i >= 0; i-- {
 			failedArches[i] = <-b.FailedTaskChan
