@@ -1,5 +1,7 @@
 package goCMD
 
+// https://pkg.go.dev/cmd/go#hdr-Print_Go_environment_information
+
 type ArchExtra struct {
 	EnvKey string
 	Values []ArchExtraValue
@@ -48,6 +50,17 @@ var ExtraArches = map[string][]ArchExtra{
 			},
 		},
 	},
+	"arm64": {
+		{
+			EnvKey: "GOARM64",
+			Values: []ArchExtraValue{
+				{Value: "v8.0", Name: "v8", IsDefault: true},
+				// {Value: "v8.{1-9}"},
+				{Value: "v9.0", Name: "v9"},
+				// {Value: "v9.{1-5}"}
+			},
+		},
+	},
 	"386": {
 		{
 			EnvKey: "GO386",
@@ -75,6 +88,15 @@ var ExtraArches = map[string][]ArchExtra{
 				{Value: "", IsDefault: true},
 				{Value: "satconv"},
 				{Value: "signext"},
+			},
+		},
+	},
+	"riscv64": {
+		{
+			EnvKey: "GORISCV64",
+			Values: []ArchExtraValue{
+				{Value: "rva20u64", IsDefault: true},
+				{Value: "rva22u64"},
 			},
 		},
 	},
