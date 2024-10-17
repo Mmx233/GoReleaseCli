@@ -7,6 +7,8 @@ inputs:
     required: true
   name:
     description: 'Output binary file name'
+  divider:
+    description: 'Divider for in name'
   output:
     description: 'Output dir path'
   arch:

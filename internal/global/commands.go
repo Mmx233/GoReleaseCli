@@ -28,6 +28,7 @@ func NewCommands(version string) *kingpin.Application {
 
 	app.Flag("output", "Output dir path.").Short('d').Default("build").StringVar(&Config.Output)
 	app.Flag("name", "Output binary file name.").Short('o').StringVar(&Config.Name)
+	app.Flag("divider", "Divider in name.").Default("-").StringVar(&Config.Divider)
 	app.Arg("target", "Target package.").Required().StringVar(&Config.Target)
 
 	return app

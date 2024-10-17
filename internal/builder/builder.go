@@ -126,7 +126,7 @@ func (b *Builder) NewTask(ctx TaskContext) *Task {
 	if ctx.GOOS == "windows" {
 		outputName += ".exe"
 	}
-	buildName := BuildName(outputName, append([]string{ctx.GOOS, ctx.GOARCH}, ctx.NameSuffix...)...)
+	buildName := BuildName(outputName, global.Config.Divider, append([]string{ctx.GOOS, ctx.GOARCH}, ctx.NameSuffix...)...)
 	outputPath := path.Join(b.OutputDir, buildName)
 
 	cmd := b.GoCMD.OutputName(outputPath).ExecContext(ctx)

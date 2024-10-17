@@ -25,11 +25,11 @@ func LoadBinaryName() string {
 	return temp[len(temp)-1]
 }
 
-func BuildName(binaryName string, suffix ...string) string {
+func BuildName(binaryName, divider string, suffix ...string) string {
 	ext := path.Ext(binaryName)
 	name := strings.TrimSuffix(binaryName, ext)
 	for _, s := range suffix {
-		name += "_" + s
+		name += divider + s
 	}
 	name += ext
 	return name
