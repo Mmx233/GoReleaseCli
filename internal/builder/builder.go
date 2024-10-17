@@ -40,7 +40,7 @@ func NewBuilder(outputDir string) (*Builder, error) {
 	}
 
 	if global.Config.Compress == "" {
-		builder.Compress = func(_, _ string) error {
+		builder.Compress = func(_ context.Context, _, _ string) error {
 			return nil
 		}
 	} else {
@@ -103,6 +103,7 @@ type Task struct {
 	Stat    *BuildStat
 	builder *Builder
 
+	ctx        context.Context
 	cmd        *exec.Cmd
 	outputPath string
 }
@@ -114,7 +115,7 @@ func (task Task) Build() error {
 	if err != nil {
 		return fmt.Errorf("build error: %v", err)
 	}
-	if err = task.builder.Compress(task.outputPath, task.builder.OutputName); err != nil {
+	if err = task.builder.Compress(task.ctx, task.outputPath, task.builder.OutputName); err != nil {
 		return fmt.Errorf("compress %s failed: %v", task.outputPath, err)
 	}
 	return nil
@@ -135,6 +136,7 @@ func (b *Builder) NewTask(ctx TaskContext) *Task {
 	cmd.Stderr = os.Stderr
 
 	return &Task{
+		ctx:        ctx,
 		cmd:        cmd,
 		builder:    b,
 		outputPath: outputPath,

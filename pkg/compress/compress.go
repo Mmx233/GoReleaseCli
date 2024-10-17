@@ -1,6 +1,7 @@
 package compress
 
 import (
+	"context"
 	"os/exec"
 	"path"
 	"strings"
@@ -18,8 +19,8 @@ type PathInfo struct {
 	TargetName string // rename src file
 }
 
-func (i PathInfo) Exec(name string, args ...string) *exec.Cmd {
-	cmd := exec.Command(name, args...)
+func (i PathInfo) Exec(ctx context.Context, name string, args ...string) *exec.Cmd {
+	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Dir = i.Dir
 	return cmd
 }
@@ -41,10 +42,10 @@ func DecodePathInfo(filePath, targetName, targetFormat string) *PathInfo {
 	}
 }
 
-type Make func(filePath, targetName string) error
+type Make func(ctx context.Context, filePath, targetName string) error
 
-func _NewMakeFn(targetFormat string, fn func(info *PathInfo) error) Make {
-	return func(filePath, targetName string) error {
-		return fn(DecodePathInfo(filePath, targetName, targetFormat))
+func _NewMakeFn(targetFormat string, fn func(ctx context.Context, info *PathInfo) error) Make {
+	return func(ctx context.Context, filePath, targetName string) error {
+		return fn(ctx, DecodePathInfo(filePath, targetName, targetFormat))
 	}
 }
