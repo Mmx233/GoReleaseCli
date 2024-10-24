@@ -27,6 +27,7 @@ func NewCommands(version string) *kingpin.Application {
 	app.Flag("extra-arches-show-default", "Show default extra arch name.").BoolVar(&Config.ExtraArchesShowDefault)
 
 	app.Flag("output", "Output dir path.").Short('d').Default("build").StringVar(&Config.Output)
+	app.Flag("output-format", "Output file name format").Short('f').EnumVar(&Config.OutputFormat, "", "post")
 	app.Flag("name", "Output binary file name.").Short('o').StringVar(&Config.Name)
 	app.Flag("divider", "Divider in name.").Default("_").StringVar(&Config.Divider)
 	app.Arg("target", "Target package.").Required().StringVar(&Config.Target)

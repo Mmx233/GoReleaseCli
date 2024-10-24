@@ -8,10 +8,21 @@ import (
 )
 
 func Run(ctx context.Context) {
+	conf := Config{
+		OutputDir: global.Config.Output,
+	}
+	switch global.Config.OutputFormat {
+	case "":
+	case "post":
+		conf.OutputFormatter = PostOutputFormatter{}
+	default:
+		log.Warnln("Unsupported output format:", global.Config.OutputFormat)
+	}
+
 	if err := DownloadGoMod(ctx); err != nil {
 		log.Fatalln("download go mod failed:", err)
 	}
-	builder, err := NewBuilder(global.Config.Output)
+	builder, err := NewBuilder(conf)
 	if err != nil {
 		log.Fatalln(err)
 	}

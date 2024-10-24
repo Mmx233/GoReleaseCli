@@ -16,7 +16,12 @@ import (
 	"sync"
 )
 
-func NewBuilder(outputDir string) (*Builder, error) {
+type Config struct {
+	OutputDir       string
+	OutputFormatter OutputFormatter
+}
+
+func NewBuilder(conf Config) (*Builder, error) {
 	outputName := LoadBinaryName()
 
 	goBuilder := goCMD.NewBuilder(global.Config.Target).TrimPath()
@@ -33,10 +38,14 @@ func NewBuilder(outputDir string) (*Builder, error) {
 	}
 
 	builder := &Builder{
-		OutputName: outputName,
-		OutputDir:  outputDir,
-		Platforms:  platforms,
-		GoCMD:      goBuilder,
+		OutputName:      outputName,
+		OutputFormatter: conf.OutputFormatter,
+		OutputDir:       conf.OutputDir,
+		Platforms:       platforms,
+		GoCMD:           goBuilder,
+	}
+	if builder.OutputFormatter == nil {
+		builder.OutputFormatter = DefaultOutputFormatter{}
 	}
 
 	if global.Config.Compress == "" {
@@ -76,7 +85,7 @@ func NewBuilder(outputDir string) (*Builder, error) {
 		builder.Cgo = "CGO_ENABLED=0"
 	}
 
-	if err := PrepareDirs(outputDir); err != nil {
+	if err := PrepareDirs(conf.OutputDir); err != nil {
 		return nil, err
 	}
 
@@ -84,11 +93,12 @@ func NewBuilder(outputDir string) (*Builder, error) {
 }
 
 type Builder struct {
-	OutputName string
-	OutputDir  string
-	Cgo        string
-	Platforms  map[string][]string
-	GoCMD      goCMD.BuildCommand
+	OutputName      string
+	OutputFormatter OutputFormatter
+	OutputDir       string
+	Cgo             string
+	Platforms       map[string][]string
+	GoCMD           goCMD.BuildCommand
 
 	WaitGroup      *sync.WaitGroup
 	TaskChan       chan *Task
@@ -126,7 +136,7 @@ func (b *Builder) NewTask(ctx TaskContext) *Task {
 	if ctx.GOOS == "windows" {
 		outputName += ".exe"
 	}
-	buildName := BuildName(outputName, global.Config.Divider, append([]string{ctx.GOOS, ctx.GOARCH}, ctx.NameSuffix...)...)
+	buildName := b.OutputFormatter.Format(outputName, global.Config.Divider, append([]string{ctx.GOOS, ctx.GOARCH}, ctx.NameSuffix...)...)
 	outputPath := path.Join(b.OutputDir, buildName)
 
 	cmd := b.GoCMD.OutputName(outputPath).ExecContext(ctx)

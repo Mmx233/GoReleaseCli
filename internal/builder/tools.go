@@ -6,7 +6,6 @@ import (
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
 	"os"
-	"path"
 	"strings"
 )
 
@@ -23,16 +22,6 @@ func LoadBinaryName() string {
 	target = strings.TrimSuffix(target, "/")
 	temp := strings.Split(target, "/")
 	return temp[len(temp)-1]
-}
-
-func BuildName(binaryName, divider string, suffix ...string) string {
-	ext := path.Ext(binaryName)
-	name := strings.TrimSuffix(binaryName, ext)
-	for _, s := range suffix {
-		name += divider + s
-	}
-	name += ext
-	return name
 }
 
 // MatchTargetPlatforms can only be executed once because permanent modify of global arch map

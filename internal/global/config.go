@@ -9,10 +9,11 @@ type _Config struct {
 	OS      string `env:"OS"`
 	Arch    string `env:"ARCH"`
 	// If Platforms is set, OS and Arch will not be used.
-	Platforms string `env:"PLATFORMS"`
-	Output    string `env:"OUTPUT,notEmpty" envDefault:"build"`
-	Divider   string `env:"DIVIDER" envDefault:"_"`
-	Name      string `env:"NAME"`
+	Platforms    string `env:"PLATFORMS"`
+	Output       string `env:"OUTPUT,notEmpty" envDefault:"build"`
+	OutputFormat string `env:"OUTPUT_FORMAT"`
+	Divider      string `env:"DIVIDER" envDefault:"_"`
+	Name         string `env:"NAME"`
 
 	ModDownloadArgs string `env:"MOD-DOWNLOAD-ARGS"`
 
