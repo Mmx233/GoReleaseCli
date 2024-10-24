@@ -33,6 +33,8 @@ Flags:
       --[no-]extra-arches-show-default
                              Show default extra arch name.
   -d, --output="build"       Output dir path.
+  -f, --output-format=OUTPUT-FORMAT  
+                             Output file name format.
   -o, --name=NAME            Output binary file name.
       --divider="-"          Divider in name.
 
