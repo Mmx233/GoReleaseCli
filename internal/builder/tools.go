@@ -10,7 +10,14 @@ import (
 )
 
 func PrepareDirs(outputDir string) error {
-	_ = os.RemoveAll(outputDir)
+	if global.Config.DisableAutoClean {
+		_ = os.RemoveAll(outputDir)
+	} else {
+		_, err := os.Stat(outputDir)
+		if err == nil || os.IsExist(err) {
+			return nil
+		}
+	}
 	return os.MkdirAll(outputDir, 0775)
 }
 

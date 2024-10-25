@@ -20,6 +20,7 @@ type _Config struct {
 	ExtraArches            bool `env:"EXTRA-ARCHES"`
 	ExtraArchesShowDefault bool `ENV:"EXTRA-ARCHES-SHOW-DEFAULT"`
 	DisableDefaultLdflags  bool `env:"DISABLE-DEFAULT-LDFLAGS"`
+	DisableAutoClean       bool `env:"DISABLE-AUTO-CLEAN"`
 
 	Compress string `env:"COMPRESS"`
 	Thread   uint16 `env:"TREAD"`
