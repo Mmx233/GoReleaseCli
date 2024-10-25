@@ -10,7 +10,7 @@ import (
 )
 
 func PrepareDirs(outputDir string) error {
-	if global.Config.DisableAutoClean {
+	if !global.Config.DisableAutoClean {
 		_ = os.RemoveAll(outputDir)
 	} else {
 		_, err := os.Stat(outputDir)
