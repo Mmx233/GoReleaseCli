@@ -20,15 +20,16 @@ func Run(ctx context.Context) {
 		log.Warnln("Unsupported output format:", global.Config.OutputFormat)
 	}
 
-	if err := DownloadGoMod(ctx); err != nil {
-		log.Fatalln("download go mod failed:", err)
-	}
 	builder, err := NewBuilder(conf)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	if ctx.Err() != nil {
 		return
+	}
+
+	if err := DownloadGoMod(ctx); err != nil {
+		log.Fatalln("download go mod failed:", err)
 	}
 	if err = builder.BuildArches(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		log.Fatalln(err)

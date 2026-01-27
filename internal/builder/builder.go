@@ -24,6 +24,9 @@ type Config struct {
 
 func NewBuilder(conf Config) (*Builder, error) {
 	outputName := LoadBinaryName()
+	if outputName == "" {
+		return nil, fmt.Errorf("binary name can not be empty")
+	}
 
 	goBuilder := goCMD.NewBuilder(global.Config.Target).TrimPath()
 	if !global.Config.DisableDefaultLdflags {
@@ -75,7 +78,7 @@ func NewBuilder(conf Config) (*Builder, error) {
 			}
 		}
 		if compressor == nil {
-			log.Fatalf("compression library is missing or the compression format (%s) is not supported", global.Config.Compress)
+			return nil, fmt.Errorf("compression library is missing or the compression format (%s) is not supported", global.Config.Compress)
 		}
 		builder.Compress = compressor
 	}
