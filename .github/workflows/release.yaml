@@ -1,0 +1,36 @@
+name: Release Draft
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Setup Release Cli
+        run: go install ./cmd/release
+
+      - name: Build
+        run: |
+          release --extra-arches --output build/output \
+            -c tar.gz \
+            --ldflags="-X main.Version=${{ github.ref_name }}" \
+            ./cmd/release
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: build/output/*.tar.gz
