@@ -2,11 +2,12 @@ package builder
 
 import (
 	"context"
+	"os"
+	"strings"
+
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"strings"
 )
 
 func DownloadGoMod(ctx context.Context) error {

@@ -5,15 +5,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Mmx233/GoReleaseCli/internal/global"
-	"github.com/Mmx233/GoReleaseCli/pkg/compress"
-	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 	"sync"
+
+	"github.com/Mmx233/GoReleaseCli/internal/global"
+	"github.com/Mmx233/GoReleaseCli/pkg/compress"
+	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
+	log "github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -265,13 +266,12 @@ func (b *Builder) BuildArches(ctx context.Context) error {
 		log.Infoln("completed successfully")
 	} else if len(b.FailedTaskChan) == tasks.Len() {
 		return errors.New("all arches build failed")
-	} else {
-		log.Infof("completed: %d arches succeed, %d arches failed", tasks.Len()-len(b.FailedTaskChan), len(b.FailedTaskChan))
-		failedArches := make([]string, len(b.FailedTaskChan))
-		for i := len(b.FailedTaskChan) - 1; i >= 0; i-- {
-			failedArches[i] = <-b.FailedTaskChan
-		}
-		log.Warnf("failed arches: %s", strings.Join(failedArches, ", "))
 	}
+	log.Infof("completed: %d arches succeed, %d arches failed", tasks.Len()-len(b.FailedTaskChan), len(b.FailedTaskChan))
+	failedArches := make([]string, len(b.FailedTaskChan))
+	for i := len(b.FailedTaskChan) - 1; i >= 0; i-- {
+		failedArches[i] = <-b.FailedTaskChan
+	}
+	log.Warnf("failed arches: %s", strings.Join(failedArches, ", "))
 	return nil
 }

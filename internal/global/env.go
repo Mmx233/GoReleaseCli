@@ -1,8 +1,9 @@
 package global
 
 import (
-	"github.com/caarlos0/env/v11"
 	"runtime"
+
+	"github.com/caarlos0/env/v11"
 )
 
 func ParseConfigFromEnv() error {

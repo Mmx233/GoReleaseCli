@@ -3,10 +3,11 @@ package builder
 import (
 	"errors"
 	"fmt"
-	"github.com/Mmx233/GoReleaseCli/internal/global"
-	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
 	"os"
 	"strings"
+
+	"github.com/Mmx233/GoReleaseCli/internal/global"
+	"github.com/Mmx233/GoReleaseCli/pkg/goCMD"
 )
 
 func PrepareDirs(outputDir string) error {

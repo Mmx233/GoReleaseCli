@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/Mmx233/GoReleaseCli/internal/builder"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	"github.com/Mmx233/GoReleaseCli/tools"

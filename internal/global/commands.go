@@ -2,8 +2,9 @@ package global
 
 import (
 	"fmt"
-	"github.com/alecthomas/kingpin/v2"
 	"runtime"
+
+	"github.com/alecthomas/kingpin/v2"
 )
 
 func NewCommands(version string) *kingpin.Application {

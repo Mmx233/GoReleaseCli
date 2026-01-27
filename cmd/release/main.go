@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"os"
+
 	"github.com/Mmx233/GoReleaseCli/internal/builder"
 	"github.com/Mmx233/GoReleaseCli/internal/global"
 	"github.com/Mmx233/GoReleaseCli/tools"
 	"github.com/alecthomas/kingpin/v2"
-	"os"
 )
 
 var Version = "-.-.-"
